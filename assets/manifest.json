@@ -1,0 +1,65 @@
+{
+  "sections": [
+    {
+      "title": "DS & Algo",
+      "route": "/ds-algo",
+      "children": [
+        {
+          "title": "Arrays",
+          "route": "/ds-algo/arrays",
+          "children": [
+            {
+              "title": "Bubble Sort",
+              "route": "/ds-algo/arrays/bubble-sort",
+              "asset": "content/ds-algo/arrays/bubble-sort.md"
+            },
+            {
+              "title": "Two Pointer",
+              "route": "/ds-algo/arrays/two-pointer",
+              "asset": "content/ds-algo/arrays/two-pointer.md"
+            }
+          ]
+        },
+        {
+          "title": "Searching",
+          "route": "/ds-algo/searching",
+          "children": [
+            {
+              "title": "Binary Search",
+              "route": "/ds-algo/searching/binary-search",
+              "asset": "content/ds-algo/searching/binary-search.md"
+            }
+          ]
+        },
+        {
+          "title": "Intervals",
+          "route": "/ds-algo/intervals",
+          "children": [
+            {
+              "title": "Insert Interval",
+              "route": "/ds-algo/intervals/insert-interval",
+              "asset": "content/ds-algo/intervals/insert-interval.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Databases",
+      "route": "/databases",
+      "children": [
+        {
+          "title": "Sql",
+          "route": "/databases/sql",
+          "children": [
+            {
+              "title": "Joins",
+              "route": "/databases/sql/joins",
+              "asset": "content/databases/sql/joins.md"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
