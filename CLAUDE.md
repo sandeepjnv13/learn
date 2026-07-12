@@ -48,6 +48,13 @@ Visualizers are fenced ```` ```viz ```` blocks (YAML) in a page, dispatched by
 a small inline box** — give it generous space and prefer a focused/full-width
 presentation.
 
+> **ALWAYS build native (Flutter) visualizers via the `algo-visualizer` skill.**
+> Whenever asked to create/generate/add a visualizer for any algorithm or data
+> structure, **invoke the `algo-visualizer` skill first** and follow its recipe —
+> do not hand-write the recorder/view from scratch. The skill enforces the rules
+> below (deterministic step recorder, reuse of the shared component library, new
+> structure primitive only when the data structure is genuinely new).
+
 Two families:
 
 ### 1. Native (Flutter) visualizers — MUST reuse components
@@ -76,9 +83,17 @@ box. The `.html` lives next to its page.
 
 ## Extending
 
-- **New algorithm visualizer:** step recorder in `lib/viz/renderers/<algo>/` +
-  register a `type` in `lib/viz/init.dart`; compose reusable panels. The
-  **`algo-visualizer` skill** (`.claude/skills/algo-visualizer/`) automates this
-  end-to-end — invoke it whenever asked to build a visualizer for an algorithm.
+- **New algorithm visualizer:** **always use the `algo-visualizer` skill**
+  (`.claude/skills/algo-visualizer/`) — it is the required path, not optional.
+  Invoke it whenever asked to build a visualizer for an algorithm; it automates
+  the whole recipe end-to-end (step recorder in `lib/viz/renderers/<algo>/`,
+  registering a `type` in `lib/viz/init.dart`, composing the reusable panels).
 - **New structure primitive / panel:** add to the component library and register.
+- **Whenever you build a new reusable visualizer component** (structure primitive,
+  panel, or shared kit like the recursion call-stack), you MUST also document it in
+  the `algo-visualizer` skill so future runs reuse it instead of re-inventing it:
+  add its API to `.claude/skills/algo-visualizer/reference/components.md` and list
+  it as "already built / reusable" in `.claude/skills/algo-visualizer/SKILL.md`
+  (removing it from any "still to build" list). A component isn't done until it's
+  in both places.
 - Keep `flutter analyze` clean and tests passing before finishing.

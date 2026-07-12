@@ -70,7 +70,9 @@ flutter:
     - content/databases/sql/
     - content/ds-algo/arrays/
     - content/ds-algo/intervals/
+    - content/ds-algo/linked-lists/
     - content/ds-algo/searching/
+    - content/ds-algo/trees/
     # <<< generated content dirs
 
   # An image asset can refer to one or more resolution-specific "variants", see

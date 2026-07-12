@@ -22,8 +22,13 @@ composing.
    The panels (pseudocode, variables, badge, progress, log, result, controls,
    legend) and the layout (`VizScaffold`) are shared and must be reused as-is. Only
    the **structure visual** (array / tree / graph / linked list / stack) may need
-   new code — and only when the structure genuinely doesn't exist yet. `ArrayCells`
-   already exists; anything array/pointer-shaped reuses it.
+   new code — and only when the structure genuinely doesn't exist yet. Already
+   built and reusable: `ArrayCells` (arrays/pointers), `LinkedListView` (singly-
+   linked lists), `TreeCanvas` (binary trees / BSTs), `CoordinateBoard`
+   (coordinate-grouping: items placed at `(col, row)`, e.g. vertical order
+   traversal). For **recursive** algorithms
+   also reuse the recursion kit — `CallStackPanel` + `RecursionPhaseChip` (see
+   reference/components.md) — rather than inventing a stack view.
 
 Focus mode (full-page lock + Exit) is **automatic** — every viz is wrapped by
 `VizLauncher` and `VizScaffold` reads `VizPresentation` to fill the viewport. You
@@ -38,9 +43,16 @@ Work in `lib/viz/renderers/<algo>/` (snake_case, e.g. `bubble_sort/`,
 
 - Array / pointers / indexed cells → **reuse `ArrayCells`** (`values`, `states`,
   `pointers`). Covers sorting, searching, two-pointer, sliding window, heaps-as-array.
-- Tree, graph, linked list, stack/queue, matrix/grid → **new primitive needed**
-  (none exist yet). Build it per "Adding a new structure primitive" below **before**
-  writing the view.
+- Singly-linked list → **reuse `LinkedListView`** (`values`, `states`, `pointers`,
+  `removed`).
+- Binary tree / BST → **reuse `TreeCanvas`** (`nodes`, `rootId`, `states`, `tags`,
+  `returnTags`, `spine`; `editable` for in-canvas building).
+- Recursive algorithm (any structure) → also reuse **`CallStackPanel`** +
+  **`RecursionPhaseChip`** for the live call stack and descend/return cue.
+- Items placed on a 2-D coordinate grid, grouped by column → **reuse
+  `CoordinateBoard`** (`items` of `BoardItem(col,row,value,state)`, `activeColumn`).
+- Graph, stack/queue, dense matrix/grid → **new primitive needed** (not built yet).
+  Build it per "Adding a new structure primitive" below **before** writing the view.
 
 ### 2. Write the step recorder — `<algo>_algo.dart`
 
@@ -120,8 +132,10 @@ status/result and that stepping is monotonic — mirror the `binarySearch` test 
 
 ## Adding a new structure primitive
 
-Only when the data structure doesn't exist yet (`ArrayCells` is the only one today).
-Put it in `lib/viz/components/<name>.dart` and `export` it from
+Only when the data structure doesn't exist yet. Already built: `ArrayCells`,
+`LinkedListView`, `TreeCanvas`, `CoordinateBoard` (plus the `CallStackPanel`
+recursion kit).
+Put a new one in `lib/viz/components/<name>.dart` and `export` it from
 `components.dart`. Follow the `ArrayCells` conventions so the kit stays one system:
 
 - **Semantic colors from tokens.** Never hardcode state colors — call
@@ -132,16 +146,27 @@ Put it in `lib/viz/components/<name>.dart` and `export` it from
   `AnimatedOpacity`); use `VizTokens.radius` for corners.
 - **Labels/pointers** analogous to `ArrayPointer` (a moving `current`/`i`/`j`/`head`
   marker) where the structure has a cursor.
-- **Self-sizing & scrollable** so it works both inline and full-viewport; wide
-  content scrolls inside its own scroll view rather than overflowing.
+- **Self-fitting, never side-scrolling.** When many inputs would overflow the
+  width, the **elements themselves shrink to fit the page** — no horizontal
+  scrollbar. Wrap the fixed-size element visual in the shared **`FitToWidth`**
+  (from `components.dart`), passing its intrinsic `naturalWidth`/`naturalHeight`
+  (which the primitive knows from element geometry × count). `FitToWidth` scales
+  the visual down only when it doesn't fit, centers it when it does, never
+  enlarges past 1:1, and reserves the scaled height. Do **not** wrap the
+  primitive (or the view's stage) in a horizontal `SingleChildScrollView`. Only
+  the data elements resize — surrounding panels, controls, and the step tracker
+  are untouched. (A primitive that maps a domain onto the full width instead,
+  like `IntervalTrack`, is already fitting and needs no `FitToWidth`.)
 - Keep it a **dumb, stateless render** of the step's data — no algorithm logic
   inside the primitive.
 
-Suggested primitives as they come up: `TreeCanvas` (binary/BST/heap — positioned
-nodes + edges), `GraphCanvas` (nodes + edges, directed/weighted), `LinkedListView`
-(node boxes + next-arrows + head/tail pointers), `StackView`/`QueueView` (vertical
-/ horizontal cell stack with a top/front marker), `Grid` (2-D matrix cells for DP /
-flood-fill). Build the minimum the current algorithm needs; generalize later.
+Primitives still to build as they come up: `GraphCanvas` (nodes + edges,
+directed/weighted — can reuse the recursion kit for DFS), `StackView`/`QueueView`
+(vertical / horizontal cell stack with a top/front marker), `Grid` (dense 2-D
+matrix cells for DP / flood-fill — distinct from the sparse `CoordinateBoard`).
+(`TreeCanvas`, `LinkedListView`, and `CoordinateBoard` already exist — reuse
+them; extend `TreeCanvas` for heaps.) Build the minimum the current
+algorithm needs; generalize later.
 
 ## Checklist before finishing
 

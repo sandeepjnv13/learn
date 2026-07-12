@@ -41,6 +41,33 @@
               "asset": "content/ds-algo/intervals/insert-interval.md"
             }
           ]
+        },
+        {
+          "title": "Linked Lists",
+          "route": "/ds-algo/linked-lists",
+          "children": [
+            {
+              "title": "Delete the Middle Node",
+              "route": "/ds-algo/linked-lists/delete-middle-node",
+              "asset": "content/ds-algo/linked-lists/delete-middle-node.md"
+            }
+          ]
+        },
+        {
+          "title": "Trees",
+          "route": "/ds-algo/trees",
+          "children": [
+            {
+              "title": "Lowest Common Ancestor",
+              "route": "/ds-algo/trees/lowest-common-ancestor",
+              "asset": "content/ds-algo/trees/lowest-common-ancestor.md"
+            },
+            {
+              "title": "Vertical Order Traversal",
+              "route": "/ds-algo/trees/vertical-order-traversal",
+              "asset": "content/ds-algo/trees/vertical-order-traversal.md"
+            }
+          ]
         }
       ]
     },

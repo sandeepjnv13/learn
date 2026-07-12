@@ -127,9 +127,29 @@ Panel({
 })
 ```
 
-## Structure primitive — `ArrayCells` / `ArrayPointer`
+## Fit-to-width — `FitToWidth`
 
-The one built-in structure visual. Reuse for anything array/pointer-shaped.
+Wrap any **fixed-size element visual** so it shrinks to fit the available width
+instead of overflowing into a horizontal scroll when there are many inputs. Scales
+down only when needed (never enlarges past 1:1), centers when it fits, and reserves
+the scaled height. Every structure primitive must use this for its elements; do
+**not** wrap a primitive or a stage in a horizontal `SingleChildScrollView`.
+
+```dart
+FitToWidth({
+  required double naturalWidth,   // intrinsic width at 1:1 (element stride × count)
+  required double naturalHeight,  // intrinsic height at 1:1
+  required Widget child,          // the fixed-size element visual (wrap it in a SizedBox is not needed)
+  Alignment alignment = Alignment.center,
+})
+```
+`ArrayCells`, `LinkedListView`, and `TreeCanvas` already use it internally, so
+callers just drop the primitive into the stage — it self-fits.
+
+## Structure primitives — `ArrayCells` / `LinkedListView` / `TreeCanvas`
+
+The built-in structure visuals. Reuse `ArrayCells` for anything array/pointer-shaped;
+`LinkedListView` for singly-linked lists; `TreeCanvas` for binary trees / BSTs.
 
 ```dart
 ArrayPointer(String label, int index, {Color? color})   // glides to its cell; off-range hides
@@ -139,8 +159,88 @@ ArrayCells({
   Map<int, VizState> states = const {},   // per-index color; missing → inactive
   List<ArrayPointer> pointers = const [], // lane of labeled markers above the cells
 })
+
+LinkedNodePointer(String label, int index, {Color? color}) // index == length parks on the null sentinel
+
+LinkedListView({
+  required List<num> values,
+  Map<int, VizState> states = const {},
+  List<LinkedNodePointer> pointers = const [],
+  Set<int> removed = const {},            // unlinked nodes: pop out + healed bypass arc
+})
+
+// Binary tree / BST. Nodes referenced by stable `id` (survives duplicate values).
+TreeNodeSpec({ required int id, required num value, int? left, int? right })
+
+TreeCanvas({
+  required List<TreeNodeSpec> nodes,
+  required int? rootId,
+  Map<int, VizState> states = const {},   // per-node color; missing → inactive
+  Map<int, String> tags = const {},       // identity pill ABOVE a node (e.g. 'p','q')
+  Map<int, String> returnTags = const {}, // label BELOW a node (e.g. '→ 6', '→ ∅')
+  Set<int> spine = const {},              // node ids on the active path → edges emphasized
+  // In-canvas building affordances (edit mode); mutation logic stays in the view:
+  bool editable = false,
+  void Function(int parentId, bool left)? onAddChild,  // '+' on empty child slots
+  void Function(int id)? onDeleteNode,                 // '×' prunes a subtree
+  void Function(int id)? onTapNode,                    // tap (e.g. to mark p/q)
+  VoidCallback? onAddRoot,                             // 'Add root' when empty
+})
 ```
-Cells animate color/scale with the spring curve; `processing`/`found` get emphasis.
-Scrolls horizontally when the array is wide. **Build a new primitive** (see SKILL.md)
-for trees, graphs, linked lists, stacks/queues, and grids, following the same
-tokens + `states` + pointer conventions.
+Cells/nodes animate color/scale with the spring curve; `processing`/`found` get
+emphasis. All three **self-fit** via `FitToWidth` — a long input shrinks to fit the
+width rather than scrolling. **Build a new primitive** (see SKILL.md) for graphs,
+stacks/queues, and grids, following the same tokens + `states` + pointer/tag + fit
+conventions.
+
+## Coordinate board — `CoordinateBoard` / `BoardItem`
+
+Structure primitive for **coordinate-grouping** problems — vertical order
+traversal (LeetCode 987), group-by-column/diagonal, bucket-by-key. Places each
+item at its integer `(col, row)`: columns left→right by column value, rows
+top→bottom by row value, items sharing a cell laid side by side sorted by value.
+Self-fits via `FitToWidth`; a highlight band marks the active column.
+
+```dart
+BoardItem({ required int id, required num value, required int col, required int row,
+            VizState state = VizState.inactive })
+
+CoordinateBoard({
+  required List<BoardItem> items,
+  int? activeColumn,   // paints a highlight band behind this column value
+})
+```
+Dumb stateless render (no algorithm logic); colors via `vizStateColors`, motion
+via `VizTokens`. See `renderers/vertical_order/` for the reference instance.
+
+## Recursion kit — `CallStackPanel` / `RecursionPhaseChip`
+
+Data-structure-agnostic panels for **any recursive algorithm** (tree/graph DFS,
+backtracking, divide-and-conquer, DP-on-recursion). Compose these instead of
+hand-rolling a stack view. The model lives in the Flutter-free `recursion_model.dart`
+so a pure recorder can build frame snapshots directly and the view just forwards them.
+
+```dart
+enum RecursionPhase { descend, base, combine, returnUp } // shared phase vocabulary
+
+FrameLocal(String name, String value, {bool resolved = true}) // pending → faded '…'
+
+RecursionFrame({
+  required String signature,        // e.g. 'lca(5)'
+  List<FrameLocal> locals = const [],
+  String? returns,                  // shown once the frame returns
+  bool active = false,              // top-of-stack (currently executing)
+  bool returning = false,           // the pop step (card turns green)
+  int? refId,                       // link to a structure node id (for spine)
+})
+
+CallStackPanel({ required List<RecursionFrame> frames, String title = 'Call stack' })
+// newest frame on top; grows/shrinks with the recursion; internal-scrolls when deep.
+
+RecursionPhaseChip({ required RecursionPhase phase })
+// the big DESCEND / BASE / COMBINE / RETURN cue — the thing that makes recursion legible.
+```
+A recursion recorder emits one step per pseudocode line as usual, and each step
+additionally carries a `List<RecursionFrame>` snapshot + a `RecursionPhase`; the view
+drops them into `CallStackPanel` / `RecursionPhaseChip`. See `renderers/lca/` for the
+reference instance (LeetCode 236).

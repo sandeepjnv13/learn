@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
+import 'fit_to_width.dart';
 import 'viz_tokens.dart';
 
 /// A labelled pointer that hovers over one cell (lo / hi / mid / i / j …) and
@@ -28,6 +29,8 @@ class ArrayCells extends StatelessWidget {
   static const double _cellW = 56;
   static const double _gap = 10;
   static const double _laneRowH = 26;
+  static const double _idxLabelH = 17; // index caption below each cell
+  static const double _cellGapH = 6; // gap between cell and its index caption
 
   const ArrayCells({
     super.key,
@@ -42,13 +45,18 @@ class ArrayCells extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final laneH = pointers.isEmpty ? 0.0 : pointers.length * _laneRowH;
+    final gapAboveCells = pointers.isEmpty ? 0.0 : 6.0;
     final totalW = values.isEmpty ? 0.0 : values.length * _stride - _gap;
+    final totalH =
+        laneH + gapAboveCells + _cellW + _cellGapH + _idxLabelH + 8;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: SizedBox(
-        width: totalW,
+    // Scale the cells down to fit the available width instead of overflowing
+    // into a horizontal scroll when there are many elements.
+    return FitToWidth(
+      naturalWidth: totalW,
+      naturalHeight: totalH,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -64,7 +72,7 @@ class ArrayCells extends StatelessWidget {
                   ],
                 ),
               ),
-            SizedBox(height: pointers.isEmpty ? 0 : 6),
+            SizedBox(height: gapAboveCells),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -226,21 +226,12 @@ class _BinarySearchViewState extends State<BinarySearchView> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Center the array when it fits; scroll horizontally when it doesn't.
-          LayoutBuilder(
-            builder: (context, c) => SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minWidth: c.maxWidth),
-                child: Center(
-                  child: ArrayCells(
-                    values: _array,
-                    states: _cellStates(),
-                    pointers: _pointers(scheme),
-                  ),
-                ),
-              ),
-            ),
+          // Centers when it fits; scales the cells down to fit the width when
+          // the array is long (ArrayCells self-fits — no horizontal scroll).
+          ArrayCells(
+            values: _array,
+            states: _cellStates(),
+            pointers: _pointers(scheme),
           ),
           const SizedBox(height: 24),
           ComparisonBadge(text: _step.badge),

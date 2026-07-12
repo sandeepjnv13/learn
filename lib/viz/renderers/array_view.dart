@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../algorithms/registry.dart';
+import '../components/fit_to_width.dart';
 import '../frame.dart';
 import '../player.dart';
 import '../registry.dart';
@@ -79,12 +80,19 @@ class _ArrayFrameView extends StatelessWidget {
       pointersAt.putIfAbsent(idx, () => []).add(name);
     });
 
+    // Each cell is 52 wide + 4px padding on each side; label/cell stack is 76
+    // tall. Scale down to fit the width instead of scrolling when there are
+    // many elements.
+    const cellStride = 52.0 + 8.0;
+    const cellStackH = 52.0 + 6.0 + 18.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
+        FitToWidth(
+          naturalWidth: frame.data.length * cellStride,
+          naturalHeight: cellStackH,
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               for (var i = 0; i < frame.data.length; i++)
                 _Cell(

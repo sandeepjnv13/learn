@@ -2,6 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:learn/algorithms/sorting.dart';
 import 'package:learn/algorithms/searching.dart';
 import 'package:learn/viz/renderers/insert_interval/insert_interval_algo.dart';
+import 'package:learn/viz/renderers/delete_middle_node/delete_middle_node_algo.dart';
+import 'package:learn/viz/renderers/lca/lca_algo.dart';
+import 'package:learn/viz/renderers/vertical_order/vertical_order_algo.dart';
 
 void main() {
   test('bubbleSort records frames and ends sorted', () {
@@ -63,6 +66,224 @@ void main() {
       expect(finalResult(steps), [
         [2, 5],
       ]);
+    });
+  });
+
+  group('deleteMiddleNode recorder', () {
+    int? removedOf(List<DmnStep> steps) => steps.last.removedIndex;
+
+    test('even length removes n/2 (0-indexed)', () {
+      final steps = generateDeleteMiddleNodeSteps([1, 2, 3, 4]);
+      expect(steps.last.status, DmnStatus.removed);
+      expect(removedOf(steps), 2); // ⌊4/2⌋
+    });
+
+    test('odd length removes the true middle', () {
+      final steps = generateDeleteMiddleNodeSteps([1, 2, 3, 4, 5]);
+      expect(removedOf(steps), 2); // ⌊5/2⌋
+    });
+
+    test('two nodes remove the second (the middle)', () {
+      final steps = generateDeleteMiddleNodeSteps([1, 2]);
+      expect(removedOf(steps), 1);
+    });
+
+    test('single node empties the list, nothing unlinked', () {
+      final steps = generateDeleteMiddleNodeSteps([9]);
+      expect(steps.last.status, DmnStatus.empty);
+      expect(removedOf(steps), isNull);
+    });
+
+    test('empty list returns null', () {
+      final steps = generateDeleteMiddleNodeSteps([]);
+      expect(steps.last.status, DmnStatus.empty);
+      expect(removedOf(steps), isNull);
+    });
+
+    test('every step highlights a valid pseudocode line', () {
+      final steps = generateDeleteMiddleNodeSteps([1, 2, 3, 4, 5, 6]);
+      for (final s in steps) {
+        expect(s.line,
+            inInclusiveRange(1, deleteMiddleNodePseudocode.length));
+      }
+    });
+  });
+
+  group('lca recorder', () {
+    // Builds id-keyed maps from a LeetCode level-order array (ids = insertion
+    // order), mirroring the view's seed logic.
+    ({
+      Map<int, num> value,
+      Map<int, int?> left,
+      Map<int, int?> right,
+      int root,
+      int Function(num) idOf,
+    }) build(List<num?> arr) {
+      final value = <int, num>{};
+      final left = <int, int?>{};
+      final right = <int, int?>{};
+      var next = 0;
+      final rootId = next++;
+      value[rootId] = arr.first!;
+      final queue = <int>[rootId];
+      var i = 1;
+      var head = 0;
+      while (head < queue.length && i < arr.length) {
+        final parent = queue[head++];
+        if (i < arr.length && arr[i] != null) {
+          final id = next++;
+          value[id] = arr[i]!;
+          left[parent] = id;
+          queue.add(id);
+        }
+        i++;
+        if (i < arr.length && arr[i] != null) {
+          final id = next++;
+          value[id] = arr[i]!;
+          right[parent] = id;
+          queue.add(id);
+        }
+        i++;
+      }
+      int idOf(num v) => value.entries.firstWhere((e) => e.value == v).key;
+      return (value: value, left: left, right: right, root: rootId, idOf: idOf);
+    }
+
+    List<LcaStep> run(List<num?> arr, num p, num q) {
+      final t = build(arr);
+      return generateLcaSteps(
+        value: t.value,
+        left: t.left,
+        right: t.right,
+        rootId: t.root,
+        pId: t.idOf(p),
+        qId: t.idOf(q),
+      );
+    }
+
+    num? lcaValue(List<num?> arr, num p, num q) {
+      final t = build(arr);
+      final steps = generateLcaSteps(
+        value: t.value,
+        left: t.left,
+        right: t.right,
+        rootId: t.root,
+        pId: t.idOf(p),
+        qId: t.idOf(q),
+      );
+      final id = steps.last.resultId;
+      return id == null ? null : t.value[id];
+    }
+
+    const tree = [3, 5, 1, 6, 2, 0, 8, null, null, 7, 4];
+
+    test('targets in different subtrees → their branch point', () {
+      expect(lcaValue(tree, 5, 1), 3);
+    });
+
+    test('ancestor is one of the targets itself', () {
+      expect(lcaValue(tree, 5, 4), 5);
+    });
+
+    test('both targets deep in the same subtree', () {
+      expect(lcaValue(tree, 6, 4), 5);
+    });
+
+    test('finishes in a found state', () {
+      expect(run(tree, 7, 4).last.status, LcaStatus.found);
+    });
+
+    test('every step highlights a valid pseudocode line', () {
+      for (final s in run(tree, 5, 1)) {
+        expect(s.line, inInclusiveRange(1, lcaPseudocode.length));
+      }
+    });
+  });
+
+  group('verticalOrder recorder', () {
+    ({
+      Map<int, num> value,
+      Map<int, int?> left,
+      Map<int, int?> right,
+      int? root,
+    }) build(List<num?> arr) {
+      final value = <int, num>{};
+      final left = <int, int?>{};
+      final right = <int, int?>{};
+      if (arr.isEmpty || arr.first == null) {
+        return (value: value, left: left, right: right, root: null);
+      }
+      var next = 0;
+      final rootId = next++;
+      value[rootId] = arr.first!;
+      final queue = <int>[rootId];
+      var i = 1;
+      var head = 0;
+      while (head < queue.length && i < arr.length) {
+        final parent = queue[head++];
+        if (i < arr.length && arr[i] != null) {
+          final id = next++;
+          value[id] = arr[i]!;
+          left[parent] = id;
+          queue.add(id);
+        }
+        i++;
+        if (i < arr.length && arr[i] != null) {
+          final id = next++;
+          value[id] = arr[i]!;
+          right[parent] = id;
+          queue.add(id);
+        }
+        i++;
+      }
+      return (value: value, left: left, right: right, root: rootId);
+    }
+
+    List<VerticalOrderStep> run(List<num?> arr) {
+      final t = build(arr);
+      return generateVerticalOrderSteps(
+        value: t.value,
+        left: t.left,
+        right: t.right,
+        rootId: t.root,
+      );
+    }
+
+    List<List<num>> result(List<num?> arr) => run(arr).last.columns;
+
+    test('classic example groups by column with row order', () {
+      // [[9],[3,15],[20],[7]]
+      expect(result([3, 9, 20, null, null, 15, 7]), [
+        [9],
+        [3, 15],
+        [20],
+        [7],
+      ]);
+    });
+
+    test('same (col,row) breaks ties by value', () {
+      // 5 and 6 both land on (0,2); the smaller value comes first.
+      expect(result([1, 2, 3, 4, 6, 5, 7]), [
+        [4],
+        [2],
+        [1, 5, 6],
+        [3],
+        [7],
+      ]);
+    });
+
+    test('empty tree yields an empty result', () {
+      final steps = run([]);
+      expect(steps.last.status, VerticalOrderStatus.done);
+      expect(steps.last.columns, isEmpty);
+    });
+
+    test('finishes done and every step is a valid pseudocode line', () {
+      final steps = run([3, 9, 20, null, null, 15, 7]);
+      expect(steps.last.status, VerticalOrderStatus.done);
+      for (final s in steps) {
+        expect(s.line, inInclusiveRange(1, verticalOrderPseudocode.length));
+      }
     });
   });
 }
