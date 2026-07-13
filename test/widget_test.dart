@@ -6,6 +6,7 @@ import 'package:learn/viz/renderers/delete_middle_node/delete_middle_node_algo.d
 import 'package:learn/viz/renderers/lca/lca_algo.dart';
 import 'package:learn/viz/renderers/vertical_order/vertical_order_algo.dart';
 import 'package:learn/viz/renderers/next_greater_element/next_greater_element_algo.dart';
+import 'package:learn/viz/renderers/three_sum/three_sum_algo.dart';
 import 'package:learn/viz/renderers/valid_parentheses/valid_parentheses_algo.dart';
 
 void main() {
@@ -317,6 +318,47 @@ void main() {
       final steps = generateNgeSteps([2, 1, 2, 4, 3]);
       for (final s in steps) {
         expect(s.line, inInclusiveRange(1, ngePseudocode.length));
+      }
+    });
+  });
+
+  group('threeSum recorder', () {
+    List<List<num>> result(List<num> arr) =>
+        generateThreeSumSteps(arr).last.triplets;
+
+    test('classic example finds both unique triplets (sorted)', () {
+      // [-1,0,1,2,-1,-4] → sorted [-4,-1,-1,0,1,2] → [[-1,-1,2],[-1,0,1]]
+      expect(result([-1, 0, 1, 2, -1, -4]), [
+        [-1, -1, 2],
+        [-1, 0, 1],
+      ]);
+    });
+
+    test('duplicates collapse to unique triplets', () {
+      // Many equal values must not produce repeated triplets.
+      expect(result([-2, 0, 0, 2, 2]), [
+        [-2, 0, 2],
+      ]);
+      expect(result([0, 0, 0, 0]), [
+        [0, 0, 0],
+      ]);
+    });
+
+    test('no triplet sums to zero', () {
+      expect(result([1, 2, 3, 4]), isEmpty);
+    });
+
+    test('fewer than 3 numbers terminates cleanly', () {
+      final steps = generateThreeSumSteps([1, -1]);
+      expect(steps.last.status, ThreeSumStatus.done);
+      expect(steps.last.triplets, isEmpty);
+    });
+
+    test('every step highlights a valid pseudocode line', () {
+      final steps = generateThreeSumSteps([-1, 0, 1, 2, -1, -4]);
+      expect(steps.last.status, ThreeSumStatus.done);
+      for (final s in steps) {
+        expect(s.line, inInclusiveRange(1, threeSumPseudocode.length));
       }
     });
   });

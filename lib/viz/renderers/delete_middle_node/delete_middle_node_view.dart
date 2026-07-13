@@ -59,6 +59,37 @@ class _DeleteMiddleNodeViewState extends State<DeleteMiddleNodeView> {
 
   num _toNum(dynamic v) => v is num ? v : num.tryParse('$v'.trim()) ?? 0;
 
+  // Preset examples — odd vs even middle (which of the two middles?), plus the
+  // two-node and single-node boundaries people forget (single → empty list).
+  static const List<(VizPreset, List<num>)> _presets = [
+    (
+      VizPreset('Odd length', detail: 'the true middle at index n÷2'),
+      [1, 2, 3, 4, 5],
+    ),
+    (
+      VizPreset('Even length',
+          detail: 'two middles — the second (index n÷2) is deleted',
+          edgeCase: true),
+      [1, 2, 3, 4, 5, 6],
+    ),
+    (
+      VizPreset('Two nodes',
+          detail: 'middle is the 2nd node → [1] remains', edgeCase: true),
+      [1, 2],
+    ),
+    (
+      VizPreset('Single node',
+          detail: 'deleting the only middle empties the list → null',
+          edgeCase: true),
+      [1],
+    ),
+  ];
+
+  void _loadPreset(int i) {
+    _listCtrl.text = _presets[i].$2.join(', ');
+    _rebuild();
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -311,6 +342,11 @@ class _DeleteMiddleNodeViewState extends State<DeleteMiddleNodeView> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        PresetPicker(
+          presets: [for (final p in _presets) p.$1],
+          onSelected: _loadPreset,
+        ),
+        const SizedBox(width: 10),
         SizedBox(
           width: 260,
           child: TextField(

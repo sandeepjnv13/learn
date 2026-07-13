@@ -77,6 +77,48 @@ class _BinarySearchViewState extends State<BinarySearchView> {
       ? n.toInt().toString()
       : n.toString();
 
+  // Preset examples — a hit, plus the boundary/absent cases people get wrong
+  // (target below/above range, exactly at lo/hi, and a single-element array).
+  static const List<(VizPreset, List<num>, num)> _presets = [
+    (
+      VizPreset('Target in the middle', detail: 'a plain successful search'),
+      [1, 3, 5, 7, 9, 11],
+      7,
+    ),
+    (
+      VizPreset('Target absent',
+          detail: 'falls between elements — lo passes hi, not found',
+          edgeCase: true),
+      [1, 3, 5, 7, 9, 11],
+      8,
+    ),
+    (
+      VizPreset('First element',
+          detail: 'target sits at the low boundary', edgeCase: true),
+      [1, 3, 5, 7, 9, 11],
+      1,
+    ),
+    (
+      VizPreset('Last element',
+          detail: 'target sits at the high boundary', edgeCase: true),
+      [1, 3, 5, 7, 9, 11],
+      11,
+    ),
+    (
+      VizPreset('Single element',
+          detail: 'array of one — lo == hi == mid', edgeCase: true),
+      [5],
+      5,
+    ),
+  ];
+
+  void _loadPreset(int i) {
+    final p = _presets[i];
+    _arrayCtrl.text = p.$2.join(', ');
+    _targetCtrl.text = _fmt(p.$3);
+    _rebuild();
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -291,6 +333,11 @@ class _BinarySearchViewState extends State<BinarySearchView> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        PresetPicker(
+          presets: [for (final p in _presets) p.$1],
+          onSelected: _loadPreset,
+        ),
+        const SizedBox(width: 10),
         SizedBox(
           width: 220,
           child: TextField(

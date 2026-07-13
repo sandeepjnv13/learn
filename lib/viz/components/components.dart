@@ -3,6 +3,7 @@
 /// structure primitive.
 library;
 
+export 'approach_card.dart';
 export 'array_cells.dart';
 export 'call_stack_panel.dart';
 export 'comparison_badge.dart';
@@ -14,6 +15,7 @@ export 'interval_track.dart';
 export 'legend.dart';
 export 'linked_list_view.dart';
 export 'panel.dart';
+export 'preset_picker.dart';
 export 'pseudocode_panel.dart';
 export 'result_banner.dart';
 export 'stack_view.dart';

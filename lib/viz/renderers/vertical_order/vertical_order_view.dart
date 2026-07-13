@@ -60,6 +60,42 @@ class _VerticalOrderViewState extends State<VerticalOrderView> {
     _editing = _root == null;
   }
 
+  // Preset trees (level-order, LeetCode style). The tie case is the one people
+  // miss: two nodes at the *same* (col, row) are ordered by value, not by which
+  // was visited first.
+  static const List<(VizPreset, List<num?>)> _presets = [
+    (
+      VizPreset('Classic', detail: 'a clean 3-column tree'),
+      [3, 9, 20, null, null, 15, 7],
+    ),
+    (
+      VizPreset('Same-cell tie',
+          detail: 'two nodes share a (col, row) → ordered by value',
+          edgeCase: true),
+      [1, 2, 3, 4, 5, 6, 7],
+    ),
+    (
+      VizPreset('Single node',
+          detail: 'one column, one row', edgeCase: true),
+      [1],
+    ),
+    (
+      VizPreset('Left-skewed',
+          detail: 'each step left shifts the column by −1', edgeCase: true),
+      [1, 2, null, 3, null, 4],
+    ),
+  ];
+
+  void _loadPreset(int i) {
+    _stop();
+    setState(() {
+      _seedFromLevelOrder(_presets[i].$2);
+      _steps = _buildSteps();
+      _index = 0;
+      _editing = false;
+    });
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -387,10 +423,20 @@ class _VerticalOrderViewState extends State<VerticalOrderView> {
         onStepBack: _atStart ? null : () => _goto(_index - 1),
         onStepForward: _atEnd ? null : () => _goto(_index + 1),
         onTogglePlay: _togglePlay,
-        input: OutlinedButton.icon(
-          onPressed: _enterEdit,
-          icon: const Icon(Icons.edit_rounded, size: 18),
-          label: const Text('Edit tree'),
+        input: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PresetPicker(
+              presets: [for (final p in _presets) p.$1],
+              onSelected: _loadPreset,
+            ),
+            const SizedBox(width: 10),
+            OutlinedButton.icon(
+              onPressed: _enterEdit,
+              icon: const Icon(Icons.edit_rounded, size: 18),
+              label: const Text('Edit tree'),
+            ),
+          ],
         ),
       ),
       stage: SingleChildScrollView(

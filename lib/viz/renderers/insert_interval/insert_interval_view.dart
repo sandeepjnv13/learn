@@ -108,6 +108,52 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
 
   num _toNum(dynamic v) => v is num ? v : num.tryParse('$v'.trim()) ?? 0;
 
+  // Preset examples — the merge-several case plus the boundaries people miss:
+  // fits in a gap (no merge), inserts before/after everything, empty list, and
+  // a new interval that swallows the whole set.
+  static const List<(VizPreset, List<List<num>>, List<num>)> _presets = [
+    (
+      VizPreset('Overlaps several',
+          detail: 'new interval merges a run in the middle'),
+      [[1, 2], [3, 5], [6, 7], [8, 10], [12, 16]],
+      [4, 8],
+    ),
+    (
+      VizPreset('Fits in a gap',
+          detail: 'no overlap — inserted whole, nothing merges', edgeCase: true),
+      [[1, 2], [6, 9]],
+      [3, 5],
+    ),
+    (
+      VizPreset('Insert before all',
+          detail: 'new interval lands at the very start', edgeCase: true),
+      [[3, 5], [8, 10]],
+      [1, 2],
+    ),
+    (
+      VizPreset('Empty list',
+          detail: 'no existing intervals — result is just the new one',
+          edgeCase: true),
+      [],
+      [5, 7],
+    ),
+    (
+      VizPreset('Swallows everything',
+          detail: 'new interval covers them all → one merged interval',
+          edgeCase: true),
+      [[2, 3], [5, 7], [8, 10]],
+      [1, 12],
+    ),
+  ];
+
+  void _loadPreset(int i) {
+    final p = _presets[i];
+    _intervalsCtrl.text =
+        p.$2.map((iv) => '[${_fmt(iv[0])}, ${_fmt(iv[1])}]').join(', ');
+    _newCtrl.text = '[${_fmt(p.$3[0])}, ${_fmt(p.$3[1])}]';
+    _rebuild();
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -424,6 +470,11 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        PresetPicker(
+          presets: [for (final p in _presets) p.$1],
+          onSelected: _loadPreset,
+        ),
+        const SizedBox(width: 10),
         SizedBox(
           width: 260,
           child: TextField(

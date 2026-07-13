@@ -74,6 +74,53 @@ class _LcaViewState extends State<LcaView> {
       _tree.containsKey(_p) &&
       _tree.containsKey(_q);
 
+  // Preset trees (level-order, LeetCode style) + the p/q values to mark. The
+  // "own ancestor" case is the one people miss: a node can be the LCA of itself
+  // and a descendant.
+  static const List<(VizPreset, List<num?>, num, num)> _presets = [
+    (
+      VizPreset('Classic (p=5, q=1)', detail: 'LCA sits above both → 3'),
+      [3, 5, 1, 6, 2, 0, 8, null, null, 7, 4],
+      5,
+      1,
+    ),
+    (
+      VizPreset('One is the other’s ancestor (p=5, q=4)',
+          detail: 'a node can be its own ancestor → LCA is 5', edgeCase: true),
+      [3, 5, 1, 6, 2, 0, 8, null, null, 7, 4],
+      5,
+      4,
+    ),
+    (
+      VizPreset('Both in one subtree (p=6, q=4)',
+          detail: 'answer bubbles up to their shared parent → 5'),
+      [3, 5, 1, 6, 2, 0, 8, null, null, 7, 4],
+      6,
+      4,
+    ),
+    (
+      VizPreset('Skewed chain (p=2, q=4)',
+          detail: 'degenerate left-leaning tree → LCA is 2', edgeCase: true),
+      [1, 2, null, 3, null, 4],
+      2,
+      4,
+    ),
+  ];
+
+  void _loadPreset(int i) {
+    final p = _presets[i];
+    _stop();
+    setState(() {
+      _seedFromLevelOrder(p.$2);
+      _p = _findByValue(p.$3);
+      _q = _findByValue(p.$4);
+      _steps = _buildSteps();
+      _index = 0;
+      _editing = false;
+      _pick = _PickMode.build;
+    });
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -404,10 +451,20 @@ class _LcaViewState extends State<LcaView> {
         onStepBack: _atStart ? null : () => _goto(_index - 1),
         onStepForward: _atEnd ? null : () => _goto(_index + 1),
         onTogglePlay: _togglePlay,
-        input: OutlinedButton.icon(
-          onPressed: _enterEdit,
-          icon: const Icon(Icons.edit_rounded, size: 18),
-          label: const Text('Edit tree'),
+        input: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PresetPicker(
+              presets: [for (final p in _presets) p.$1],
+              onSelected: _loadPreset,
+            ),
+            const SizedBox(width: 10),
+            OutlinedButton.icon(
+              onPressed: _enterEdit,
+              icon: const Icon(Icons.edit_rounded, size: 18),
+              label: const Text('Edit tree'),
+            ),
+          ],
         ),
       ),
       stage: Column(

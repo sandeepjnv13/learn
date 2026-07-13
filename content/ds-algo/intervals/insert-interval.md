@@ -1,40 +1,44 @@
 ---
-title: Insert Interval
+title: 57. Insert Interval
 order: 1
 ---
 
-# Insert Interval
+# 57. Insert Interval
 
-**Problem.** You're given a list of intervals that are pairwise
-**non-overlapping** but **not necessarily sorted**, plus one **new interval** to
-insert. Return the updated list, still non-overlapping and sorted, with the new
-interval merged into any intervals it touches.
+Given non-overlapping intervals (not necessarily sorted) and one **new interval**,
+return the updated list — still non-overlapping and sorted — with the new interval
+merged into anything it touches.
 
-> Example
-> `intervals = [[1, 2], [3, 5], [6, 7], [8, 10], [12, 16]]`,
-> `newInterval = [4, 8]`
-> → `[[1, 2], [3, 10], [12, 16]]`
-> (the new `[4, 8]` swallowed `[3, 5]`, `[6, 7]`, and `[8, 10]` into `[3, 10]`).
+> `intervals = [[1, 2], [3, 5], [6, 7], [8, 10], [12, 16]]`, `newInterval = [4, 8]`
+> → `[[1, 2], [3, 10], [12, 16]]` (the new `[4, 8]` swallowed `[3, 5]`, `[6, 7]`,
+> `[8, 10]`).
 
-## Idea
+```viz
+type: approach
+technique: Sort, then sweep with a growing toAdd
+pattern: interval
+idea: Sort by start, then sweep once carrying one interval, toAdd, that keeps absorbing anything it overlaps.
+bullets:
+  - iv entirely before toAdd → commit iv and move on.
+  - iv entirely after toAdd → toAdd is finished, commit it, then let toAdd become iv.
+  - otherwise they overlap → toAdd = [min(starts), max(ends)]. After the loop, commit the toAdd still being carried.
+gotcha: Test the two NON-overlap cases first with strict `<` / `>`; overlap is then just the else, and touching endpoints ([1,4] & [4,8]) correctly fall through and merge.
+complexity: O(n log n) time (O(n) if already sorted) · O(n) space
+```
 
-Because the input can arrive unsorted, first **sort by start**. Then sweep the
-list left to right carrying a single interval, `toAdd`, which starts as
-`newInterval` and **keeps growing** as it absorbs anything it overlaps. For each
-interval `iv` in order there are exactly three possibilities:
+## The trick
 
-- **`iv` is entirely before `toAdd`** → it can never touch `toAdd`, so commit
-  `iv` to the result and move on.
-- **`iv` is entirely after `toAdd`** → nothing later can reach back to `toAdd`
-  (the list is sorted), so `toAdd` is finished: commit it, then let `toAdd`
-  *become* `iv` and keep sweeping.
-- **otherwise they overlap** → merge `iv` into `toAdd`
-  (`toAdd ← [min(starts), max(ends)]`).
+Carry a single interval `toAdd`, starting as `newInterval`, and let it **grow** as it
+absorbs overlaps. The subtle part is **ordering the checks**. Testing overlap directly
+means the two-part condition `iv.start ≤ toAdd.end && iv.end ≥ toAdd.start` — genuinely
+fiddly at touching endpoints, and easy to get a `<` vs `≤` wrong. Instead check the two
+**non-overlap** cases first, each a single unambiguous comparison:
 
-After the loop, the interval still being carried in `toAdd` was never committed
-inside the loop, so **add it once at the end**.
+- fully before: `iv.end < toAdd.start`
+- fully after:  `iv.start > toAdd.end`
 
-## Pseudocode
+If neither holds, the intervals **must** overlap — so "overlap" is just the `else`,
+with no boundary reasoning at all.
 
 ```text
 sort intervals by start
@@ -52,39 +56,17 @@ result.add(toAdd)
 return result
 ```
 
-Runs in **O(n log n)** for the sort (**O(n)** if the list is already sorted).
+## Edge cases & gotchas
 
-## The tricky part — order the checks so overlap falls out by elimination
+- **Order the checks:** non-overlap cases before the overlap `else`. Overlap is never
+  tested directly — it's whatever survives the two rejections.
+- **Strict `<` / `>`** on the non-overlap checks, so touching endpoints (`iv.end ==
+  toAdd.start`) fall through and merge — `[1, 4]` and `[4, 8]` become `[1, 8]`.
+- **Commit `toAdd` once at the end:** the last carried interval is never committed
+  inside the loop.
 
-The easy bug here is trying to test **overlap first**. Two intervals overlap when
-`iv.start ≤ toAdd.end` **and** `iv.end ≥ toAdd.start` — a two-part condition that
-is genuinely fiddly at the **touching endpoints** (is `[2, 4]` "overlapping"
-`[4, 8]`?), and it's easy to flip a `<` for a `≤` and merge intervals you
-shouldn't (or fail to merge ones you should).
-
-The clean way is the opposite: **check the two *non-overlap* cases first.** They
-are each a single, unambiguous comparison:
-
-- fully before: `iv.end < toAdd.start`
-- fully after:  `iv.start > toAdd.end`
-
-If neither is true, the intervals **must** overlap — so "overlap" is just the
-`else`, with no boundary reasoning at all. Getting this ordering right is the
-whole game:
-
-1. **Non-overlap checks come before the overlap case.** Overlap is never tested
-   directly; it's whatever survives the two rejections.
-2. **The two non-overlap comparisons use strict `<` / `>`.** Touching endpoints
-   (`iv.end == toAdd.start`) therefore fall through to the `else` and get
-   merged — which is what we want, since adjacent intervals like `[1, 4]` and
-   `[4, 8]` should combine into `[1, 8]`.
-
-## Visualizer
-
-Edit the intervals or the new interval and press the check to re-run; step
-through manually or auto-play. Watch **`toAdd`** (top lane) stretch as it absorbs
-overlaps, and see intervals drop into **result** as they're committed. The
-highlighted pseudocode line and the event log narrate each decision.
+Edit the intervals or the new interval and re-run. Watch **`toAdd`** (top lane)
+stretch as it absorbs overlaps, and intervals drop into **result** as they commit.
 
 ```viz
 type: insert-interval

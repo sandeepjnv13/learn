@@ -20,7 +20,9 @@ composing.
    always advances exactly one line and can never double-fire.
 2. **Compose existing components; add a primitive only for a new data structure.**
    The panels (pseudocode, variables, badge, progress, log, result, controls,
-   legend) and the layout (`VizScaffold`) are shared and must be reused as-is. Only
+   legend, **preset picker**), the page-top **`ApproachCard` glance card**
+   (`type: approach`), and the layout (`VizScaffold`) are shared and must
+   be reused as-is. Only
    the **structure visual** (array / tree / graph / linked list / stack) may need
    new code — and only when the structure genuinely doesn't exist yet. Already
    built and reusable: `ArrayCells` (arrays/pointers), `LinkedListView` (singly-
@@ -92,8 +94,17 @@ calling `VizRegistry.register('<type>', (ctx) => <Algo>View(ctx));`. Model it on
 - Derived-state helpers off the current `_step`: a `Map<int, VizState>` (or per-node
   map) for the primitive, the pointer list, `List<VizVar> _vars()` (set
   `changed: _step.changed.contains('name')`), and `_result()` → `ResultKind?` + msg.
+- **Preset examples (required).** Every visualizer with editable input MUST
+  offer a `PresetPicker` in the `ControlBar.input` slot, *before* the edit
+  fields — 3–4 presets that span the algorithm's behaviours **plus the
+  frequently-missed edge cases** (empty/single input, boundaries, strict-vs-equal,
+  ties, degenerate/skewed shapes), marked `edgeCase: true`. Store each preset's
+  `VizPreset` label next to its payload in one `static const` list so they can't
+  drift, and have `_loadPreset(i)` write the input controllers then call
+  `_rebuild()` (or, for in-canvas tree builders, reseed + rebuild). See
+  reference/components.md → "Preset examples".
 - `build` returns a single **`VizScaffold`**:
-  - `controlBar: ControlBar(playing/atStart/atEnd/callbacks, input: <your fields>)`
+  - `controlBar: ControlBar(playing/atStart/atEnd/callbacks, input: <presets + your fields>)`
   - `stage:` a `Column` with the **structure primitive**, then `ComparisonBadge`,
     `StepProgress`, `Legend`, `ResultBanner`.
   - `panels: [PseudocodePanel(lines: <algo>Pseudocode, currentLine: _step.line),
@@ -111,7 +122,39 @@ Add `<Algo>View.register();` to `registerVisualizers()`.
 
 ### 5. Author a page + viz block
 
-Add/extend a markdown page under `content/` with a fenced block:
+Every problem page has the **same tight shape** — a glance card, direct prose, then
+the interactive viz. Keep it lean: *the trick, then the gotchas, nothing more.*
+
+**Title — LeetCode number first.** If the problem is a LeetCode problem, prefix its
+number LeetCode-native style in **both** the frontmatter `title` and the page `#`
+heading: `title: Valid Parentheses` → `title: 20. Valid Parentheses`, and
+`# 20. Valid Parentheses`. Skip the number only for generic technique pages with no
+single LeetCode id (e.g. "Two Pointer").
+
+**Glance card first (required).** Before any prose, add a static `type: approach`
+**glance card** — the non-interactive "how is this solved?" summary a learner can
+read in one look (technique name + a schematic hint + a couple of mechanic bullets +
+complexity). Pick the schematic `pattern` that matches the structure (see
+reference/components.md → "Approach glance card" for the list and YAML). It renders
+inline with no stepper/focus chrome.
+
+**Prose — direct, then the interactive viz.** After the card, write only: a
+one-line problem statement, *how the trick solves it*, and the **edge cases /
+gotchas**. Cut narration ("Watch it run", "Try this preset") — the card and the
+interactive viz already carry the walkthrough. Keep pseudocode/code (it *is* how the
+problem is solved). Then the interactive `type: <algo>` block.
+
+    ```viz
+    type: approach
+    technique: <the named technique>
+    pattern: <schematic key>
+    idea: <one-line gist>
+    bullets:
+      - <mechanic 1>
+      - <mechanic 2>
+    gotcha: <the single most-missed pitfall>
+    complexity: O(n) time · O(n) space
+    ```
 
     ```viz
     type: <type>
@@ -133,6 +176,75 @@ flutter build web --no-tree-shake-icons   # compiles for the real target
 Add a unit test for the recorder (deterministic, easy): assert the final step's
 status/result and that stepping is monotonic — mirror the `binarySearch` test in
 `test/widget_test.dart`.
+
+## Motion & animation craft
+
+The recorder decides *what* each step shows; this section is about *how the change
+moves*. In a step-by-step visualizer the **transition between two steps is the
+teaching moment** — the learner understands the algorithm by watching state move,
+not by reading two static frames. Treat that motion as a first-class, meticulously
+tuned part of the work, not an afterthought. (Distilled from Anthropic's
+`algorithmic-art` skill — its *process-over-product* and craftsmanship ethos — but
+adapted to a **deterministic, educational, theme-consistent** tool: we keep the
+motion craft and reject the generative side. **No RNG, no seeded variation, no
+particle systems, no flow fields** — every frame is still a pure function of the
+recorded step, and theme + layout stay exactly as they are.)
+
+Everything below reuses the **existing** design tokens (`VizTokens.spring`,
+`moveDuration`, `pulseDuration`, `radius`) and **semantic** `VizState` colors — it
+adds motion quality, never new theme surface.
+
+### Principles
+
+- **Choreograph the change, don't snap it.** When a pointer advances, a cell
+  recolors, or a value moves, animate it as a *movement*: `AnimatedPositioned` /
+  `AnimatedContainer` / `AnimatedOpacity` on `VizTokens.spring` + `moveDuration`.
+  A step should read as "this thing moved *here* and *this* is why," never as an
+  instant redraw. This is the one rule that most raises perceived quality.
+- **One idea in motion per step.** A step maps to one pseudocode line, so it should
+  have one dominant movement (the thing that line did). Let secondary state settle
+  quietly (shorter/subtler) so the eye is led, not scattered. Order-of-motion *is*
+  composition — the art skill's "visual hierarchy even in randomness," applied to
+  a single deterministic frame.
+- **Semantic transitions.** Color changes carry meaning (`inScope`→`discarded`,
+  `processing`→`found`); let them ease over `moveDuration` rather than flip, so the
+  learner sees the reclassification happen. Never hardcode a color — go through
+  `vizStateColors`.
+- **Tune, don't decorate.** Craftsmanship here means calibrating durations, easing
+  and stagger until the motion feels inevitable — *not* adding ornament. If an
+  effect doesn't help the learner track state, cut it.
+
+### Techniques (apply when they help; skip when they don't)
+
+- **Event accents — tasteful, one-shot.** On a semantic milestone (found, swap,
+  discarded, base case reached) a single subtle scale-pop + glow on the affected
+  element, using the existing `pulseDuration`/pulse pattern (same one `PulseChip`
+  uses). It punctuates the moment. **Guardrail:** one accent per milestone, no
+  bursts, no confetti/particles — this is a study tool, restraint reads as quality.
+- **Motion trails / ghosting — OPTIONAL, only when it genuinely aids tracking.**
+  Borrowed from the art skill's fading-trail idea: when a marker *jumps a distance*
+  (e.g. binary-search `mid` leaping across the array, a two-pointer skip), leave a
+  brief fading ghost of its previous position(s) so the eye follows the jump.
+  - Use it **only** where the jump is large enough to lose; for a pointer that
+    moves one cell at a time it's noise — don't add it there.
+  - Implement as an **opt-in flag** on the pointer/marker (e.g. `trail: true`),
+    default off; render prior positions as decaying `AnimatedOpacity` in the same
+    semantic color. Theme-aware, no new colors.
+  - It must never change layout or leave permanent marks — ghosts fully fade within
+    ~`moveDuration`.
+- **Non-spring easing for scalars.** The spring curve overshoots — great for
+  boxes/nodes, wrong for a monotonic *number* (search-space countdown, progress
+  caption, a running sum). For those use a plain `easeInOutCubic`. If a shared
+  helper isn't in `viz_tokens.dart` yet, add one there (a pure
+  `double easeInOutCubic(double t)`) and reuse it — don't inline copies.
+
+### When adding motion to a primitive
+
+Keep the primitive a **dumb, stateless render** (unchanged rule): it animates
+*toward* whatever the current step describes via the `Animated*` widgets and tokens
+— it holds no algorithm logic and no step history. If a technique needs prior
+positions (trails), pass them in from the view's derived state, computed from the
+recorded steps — never let the primitive infer motion on its own.
 
 ## Adding a new structure primitive
 
@@ -177,6 +289,13 @@ algorithm needs; generalize later.
 - [ ] Step recorder is a pure function, one step per pseudocode line, terminal cases
       handled.
 - [ ] View composes `VizScaffold` + shared panels; no bespoke layout.
+- [ ] Page opens with a `type: approach` **glance card** (right `pattern`
+      schematic, technique name, mechanic bullets, gotcha, complexity).
+- [ ] Title carries the **LeetCode number** LeetCode-native (`20. Valid
+      Parentheses`) in both frontmatter `title` and the `#` heading (skip only
+      for generic technique pages); prose is trimmed to *trick + gotchas*.
+- [ ] Editable input has a `PresetPicker` with 3–4 presets incl. the
+      frequently-missed edge cases (`edgeCase: true`).
 - [ ] New primitive (if any) exported from `components.dart`, uses tokens + semantic
       colors, animates with the spring curve.
 - [ ] Registered in `init.dart`; content page has a `type:` block;

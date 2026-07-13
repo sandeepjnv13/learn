@@ -74,6 +74,7 @@ flutter:
     - content/ds-algo/searching/
     - content/ds-algo/stacks/
     - content/ds-algo/trees/
+    - content/ds-algo/two-pointer/
     # <<< generated content dirs
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -24,11 +24,20 @@ class VizRegistry {
 
   static final Map<String, VizBuilder> _builders = {};
 
-  static void register(String type, VizBuilder builder) {
+  /// Types that render as a **static, inline** card (no stepper, no focus/fit
+  /// chrome) — e.g. the `approach` glance card. [VizLauncher] omits its button
+  /// cluster and full-screen route for these.
+  static final Set<String> _static = {};
+
+  static void register(String type, VizBuilder builder, {bool isStatic = false}) {
     _builders[type] = builder;
+    if (isStatic) _static.add(type);
   }
 
   static bool has(String type) => _builders.containsKey(type);
+
+  /// Whether [type] is a static inline card that should skip the launcher chrome.
+  static bool isStatic(Object? type) => type is String && _static.contains(type);
 
   static Widget build(VizContext ctx) {
     final type = ctx.config['type'];

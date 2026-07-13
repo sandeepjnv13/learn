@@ -14,7 +14,13 @@ echo "→ Regenerating content manifest..."
 dart run tool/gen_content.dart
 
 echo "→ Building web..."
-flutter build web
+# Warn when the incremental compiler cache is cold — a cold dart2js compile is
+# ~19s vs ~2.5s warm. Cache is wiped by `flutter clean`, `flutter pub get`, or
+# switching branches that touch many lib/ files.
+if [ ! -d .dart_tool/flutter_build ]; then
+  echo "   ⚠ cold build cache — this build will be slow (~19s). Subsequent runs will be fast (~3s)."
+fi
+flutter build web --no-wasm-dry-run
 
 echo ""
 echo "✅ Open  http://127.0.0.1:$PORT  in your browser (Ctrl-C to stop)"

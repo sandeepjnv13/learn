@@ -12,11 +12,22 @@
               "title": "Bubble Sort",
               "route": "/ds-algo/arrays/bubble-sort",
               "asset": "content/ds-algo/arrays/bubble-sort.md"
-            },
+            }
+          ]
+        },
+        {
+          "title": "Two Pointer",
+          "route": "/ds-algo/two-pointer",
+          "children": [
             {
               "title": "Two Pointer",
-              "route": "/ds-algo/arrays/two-pointer",
-              "asset": "content/ds-algo/arrays/two-pointer.md"
+              "route": "/ds-algo/two-pointer/two-pointer",
+              "asset": "content/ds-algo/two-pointer/two-pointer.md"
+            },
+            {
+              "title": "15. 3Sum",
+              "route": "/ds-algo/two-pointer/three-sum",
+              "asset": "content/ds-algo/two-pointer/three-sum.md"
             }
           ]
         },
@@ -25,7 +36,7 @@
           "route": "/ds-algo/searching",
           "children": [
             {
-              "title": "Binary Search",
+              "title": "704. Binary Search",
               "route": "/ds-algo/searching/binary-search",
               "asset": "content/ds-algo/searching/binary-search.md"
             }
@@ -36,7 +47,7 @@
           "route": "/ds-algo/intervals",
           "children": [
             {
-              "title": "Insert Interval",
+              "title": "57. Insert Interval",
               "route": "/ds-algo/intervals/insert-interval",
               "asset": "content/ds-algo/intervals/insert-interval.md"
             }
@@ -47,7 +58,7 @@
           "route": "/ds-algo/linked-lists",
           "children": [
             {
-              "title": "Delete the Middle Node",
+              "title": "2095. Delete the Middle Node",
               "route": "/ds-algo/linked-lists/delete-middle-node",
               "asset": "content/ds-algo/linked-lists/delete-middle-node.md"
             }
@@ -58,12 +69,12 @@
           "route": "/ds-algo/stacks",
           "children": [
             {
-              "title": "Valid Parentheses",
+              "title": "20. Valid Parentheses",
               "route": "/ds-algo/stacks/valid-parentheses",
               "asset": "content/ds-algo/stacks/valid-parentheses.md"
             },
             {
-              "title": "Next Greater Element",
+              "title": "496. Next Greater Element",
               "route": "/ds-algo/stacks/next-greater-element",
               "asset": "content/ds-algo/stacks/next-greater-element.md"
             }
@@ -74,12 +85,12 @@
           "route": "/ds-algo/trees",
           "children": [
             {
-              "title": "Lowest Common Ancestor",
+              "title": "236. Lowest Common Ancestor",
               "route": "/ds-algo/trees/lowest-common-ancestor",
               "asset": "content/ds-algo/trees/lowest-common-ancestor.md"
             },
             {
-              "title": "Vertical Order Traversal",
+              "title": "987. Vertical Order Traversal",
               "route": "/ds-algo/trees/vertical-order-traversal",
               "asset": "content/ds-algo/trees/vertical-order-traversal.md"
             }

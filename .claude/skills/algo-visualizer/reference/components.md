@@ -17,6 +17,86 @@ Design tokens & semantic colors live in `viz_tokens.dart` (re-exported):
 Monospace text: `AppTheme.mono(context, size: 13, color: ...)` from
 `lib/theme/app_theme.dart`.
 
+**Motion.** These tokens are also the *only* motion vocabulary — animate with the
+`Animated*` widgets on `VizTokens.spring` + `moveDuration` (boxes/nodes/pointers)
+and the pulse pattern on `pulseDuration` (value/state changes). For monotonic
+*scalar* interpolation, spring overshoot is wrong — use a plain `easeInOutCubic`
+(add a shared `double easeInOutCubic(double t)` to `viz_tokens.dart` if absent).
+See **SKILL.md → "Motion & animation craft"** for the choreography principles,
+tasteful event accents, and the optional pointer-trail/ghosting technique before
+adding motion to a primitive.
+
+## Approach glance card — `ApproachCard` (`type: approach`)
+
+A **static, non-interactive "glance card"** that heads every problem page: the
+one-look answer to *"how is this solved?"*. It is **not** a stepper — no controls,
+no editable input, no focus/fit chrome (it's registered as a *static* viz, so
+`VizLauncher` renders it plainly inline). It shows the **technique name**, a small
+**schematic** (a hand-drawn hint keyed by `pattern`), a few **mechanic bullets**, an
+optional **gotcha**, and the **complexity**.
+
+Author it as the **first** `viz` block on the page:
+
+```yaml
+type: approach
+technique: Monotonic decreasing stack   # the headline
+pattern: monotonic-stack                # selects the schematic (see list below)
+idea: Keep indices whose answer is unknown, values decreasing bottom→top.
+bullets:                                # 2–4 short "moves that make it work"
+  - Pop every top smaller than the current value — it just found its answer
+  - Push the current index; leftovers at the end resolve to -1
+gotcha: Use a strict `<` so equal values don't resolve each other.
+complexity: O(n) time · O(n) space
+```
+
+**Schematic `pattern` keys** (each draws a themed vector hint; unknown → a plain
+labelled box):
+
+| pattern | draws | use for |
+|---|---|---|
+| `monotonic-stack` | decreasing staircase + incoming taller bar popping it | next-greater-element, stock span, largest rectangle |
+| `stack` | vertical LIFO cells with push/pop + top marker | balanced parentheses, DFS-with-stack |
+| `binary-search` | sorted row with lo/mid/hi, one half discarded | binary search & variants |
+| `two-pointer` | row with lo → ← hi converging | sorted two-sum, palindrome, container |
+| `fast-slow` | linked list with slow(+1)/fast(+2) markers | middle/cycle of a linked list |
+| `post-order` | small tree with return-up arrows, meeting node lit | LCA, tree aggregation |
+| `coordinate` | sparse grid, dots at (col,row), active column band | vertical order, group-by-coordinate |
+| `interval` | number line, grey intervals + one growing merged bar | insert/merge intervals |
+| `adjacent-swap` | bars with two adjacent highlighted + swap arc | bubble sort, adjacent-compare passes |
+
+Need a structure with no matching schematic? Add a new `case` to
+`_SchematicPainter` in `lib/viz/components/approach_card.dart` (theme-aware, drawn
+from the same `ColorScheme` + semantic hues as the rest of the kit), then list it in
+the table above. Keep each schematic a **small static hint**, not a full diagram —
+it points at the idea, the interactive viz below does the walking-through.
+
+> **Schematic label placement — avoid text overlap.** A schematic caption's origin
+> and `align` are its *anchor*, and the card lays out at only ~288px of drawable
+> width in desktop row mode (the `SizedBox(width: 320)` minus padding). So two
+> captions anchored to the **same edge or point will collide** at that width even
+> if they look fine wider. Rules when adding/placing `_text` captions:
+> - Give the schematic **at most one caption per band** — top-left title, top-right
+>   mechanic, bottom-center summary. Never put two labels in the same band.
+> - **Never anchor a second label at `r.center.dx`** if a corner label shares that
+>   band — a center-anchored `TextAlign.right`/`left` string extends *toward* the
+>   corner and overruns it. Pin the second label to the opposite edge (`r.right`
+>   with `align: TextAlign.right`, or `r.left` with `align: TextAlign.left`).
+> - Keep captions ≤ ~24 chars; the amber mechanic line and the muted title must not
+>   each exceed roughly half the width or they meet in the middle.
+> - After adding a schematic, eyeball it at the **narrow (≤620px, stacked) and the
+>   desktop row (320px card) widths** — the row width is the tight case.
+
+```dart
+ApproachCard({
+  required String technique,   // headline
+  required String pattern,     // schematic key
+  String? idea,                // one-line gist
+  List<String> bullets = const [],  // 2–4 mechanic lines
+  String? gotcha,              // one highlighted watch-out
+  String? complexity,          // e.g. 'O(n) time · O(n) space'
+})
+```
+
 ## Layout — `VizScaffold`
 
 The full-page shell. Desktop = info column (left) | stage (right), height-bounded so
@@ -52,6 +132,52 @@ ControlBar({
   Widget? input,                         // e.g. a Row of TextFields + apply button
 })
 ```
+
+## Preset examples — `PresetPicker` / `VizPreset`
+
+A dropdown of **preset example inputs**, placed in the `ControlBar.input` slot
+next to the editable fields. **Every step-by-step visualizer with editable input
+must offer one** — 3–4 presets that span the algorithm's shapes, *plus* the
+frequently-missed edge cases (mark those `edgeCase: true`). Selecting a preset
+loads it (the view writes its input controllers, then calls its `_rebuild`);
+editing the loaded values is still allowed.
+
+```dart
+VizPreset(String label, {String? detail, bool edgeCase = false})
+// label: short menu title; detail: one line on why it's interesting;
+// edgeCase: badges it as a frequently-missed case.
+
+PresetPicker({
+  required List<VizPreset> presets,
+  required void Function(int index) onSelected,  // load presets[index]
+  String label = 'Examples',
+})
+```
+
+**Wiring pattern** (keep the label and its payload together so they can't drift):
+
+```dart
+static const List<(VizPreset, List<num>)> _presets = [
+  (VizPreset('Mixed', detail: 'some resolve, some wait'), [2, 1, 2, 4, 3]),
+  (VizPreset('Strictly decreasing',
+      detail: 'nothing resolves until the end', edgeCase: true), [5, 4, 3, 2, 1]),
+  (VizPreset('All equal',
+      detail: 'equal is NOT greater — all −1', edgeCase: true), [3, 3, 3, 3]),
+  (VizPreset('Single element', detail: 'no successor', edgeCase: true), [7]),
+];
+
+void _loadPreset(int i) {
+  _arrayCtrl.text = _presets[i].$2.join(', ');
+  _rebuild();               // re-parse fields + regenerate steps + reset index
+}
+
+// in _inputs(): PresetPicker(presets: [for (final p in _presets) p.$1],
+//                            onSelected: _loadPreset) then the TextField(s).
+```
+For **in-canvas** builders (trees: `lca`, `vertical_order`) there are no text
+fields — the preset carries a level-order list (+ any p/q), and `_loadPreset`
+reseeds the tree, rebuilds steps, and drops back into run mode. See
+`renderers/lca/` and `renderers/vertical_order/` for that variant.
 
 ## Pseudocode — `PseudocodePanel`
 
@@ -232,12 +358,21 @@ StackView({
   required List<Object> values,          // bottom → top; numbers → bars, else cells
   Map<int, VizState> states = const {},  // per-element color; missing → inScope
   String topLabel = 'top',               // text in the top (push/pop) tag
-  Map<int, String> captions = const {},  // small caption per element (e.g. 'idx 3')
+  Map<int, String> captions = const {},  // small caption per element (e.g. '#3')
   String emptyLabel = 'empty stack',     // placeholder when values is empty
   num? barMax,                           // stable bar-height reference (pass the
                                          // whole input's max so heights don't jump)
+  bool compact = false,                  // bar mode: tighten spacing so a long
+                                         // monotonic stack reads as one silhouette
+  bool connectTops = false,              // bar mode: draw a polyline + dots through
+                                         // the bar tops — the "graph on top of the
+                                         // bars" that makes the monotonic shape clear
 })
 ```
+For **monotonic-stack** problems (next-greater-element, stock span, largest
+rectangle) pass `compact: true, connectTops: true`: the tight bars plus the trend
+line make the strictly increasing/decreasing invariant obvious at a glance. Keep
+captions short (e.g. `'#3'`, not `'idx 3'`) so they fit the compact column.
 Dumb stateless render (no algorithm logic); colors via `vizStateColors`, motion +
 the gliding top tag/band via `VizTokens`. Self-fits via `FitToWidth`. See
 `renderers/valid_parentheses/` (cells) and `renderers/next_greater_element/`

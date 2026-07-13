@@ -91,6 +91,14 @@ class _VizLauncherState extends State<VizLauncher> {
 
   @override
   Widget build(BuildContext context) {
+    // Static cards (e.g. the `approach` glance card) are non-interactive and
+    // inline-only: render them plainly, without the Fit/Focus chrome.
+    if (VizRegistry.isStatic(widget.ctx.config['type'])) {
+      return VizPresentation(
+        mode: VizMode.inline,
+        child: VizRegistry.build(widget.ctx),
+      );
+    }
     // Fresh inline instance; focus mode builds its own separate instance.
     return VizPresentation(
       mode: VizMode.inline,

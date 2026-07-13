@@ -1,4 +1,4 @@
 ---
 title: Intervals
-order: 3
+order: 4
 ---

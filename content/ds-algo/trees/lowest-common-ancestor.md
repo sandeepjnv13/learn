@@ -1,36 +1,34 @@
 ---
-title: Lowest Common Ancestor
+title: 236. Lowest Common Ancestor
 order: 1
 ---
 
-# Lowest Common Ancestor of a Binary Tree
+# 236. Lowest Common Ancestor of a Binary Tree
 
-> **LeetCode 236.** Given the `root` of a binary tree and two nodes `p` and `q`,
-> return their **lowest common ancestor** — the deepest node that has both `p`
-> and `q` somewhere in its subtree (a node can be an ancestor of itself).
+Given the `root` of a binary tree and two nodes `p` and `q`, return their **lowest
+common ancestor** — the deepest node with both `p` and `q` in its subtree (a node can
+be an ancestor of itself).
 
-## The idea — let the answer bubble up
+```viz
+type: approach
+technique: Post-order "answers bubble up"
+pattern: post-order
+idea: Recurse to the leaves and let each node combine what its two children returned — the first node that sees a target on both sides is the answer.
+bullets:
+  - Base case — node is null, or it is p or q → return the node itself.
+  - Recurse left and right, then combine: both sides non-null → this node is the LCA.
+  - Only one side non-null → forward it up (a found target, or an already-decided LCA sailing to the root).
+gotcha: Because a node can be its own ancestor, the base case returns on `node == p || node == q` before recursing — so if q sits under p, the answer is p and the search short-circuits.
+complexity: O(n) time · O(h) stack space
+```
 
-This is a **post-order** recursion. Nothing interesting happens on the way *down*;
-all the logic runs on the way back *up*, as each call combines what its two
-children returned.
+## The trick
 
-At every node we ask one question: *"did a target turn up on my left, my right,
-both, or neither?"*
-
-- **Base case.** If the node is `null`, or it *is* `p` or `q`, return the node
-  itself — "I found a target here."
-- **Recurse** into the left and right children.
-- **Combine:**
-  - If **both** sides came back non-`null`, then `p` and `q` were found in
-    *different* subtrees, so **this node is their lowest common ancestor** — return it.
-  - If only **one** side came back non-`null`, pass that result straight up
-    (either a found target, or an already-decided LCA sailing up to the root).
-  - If **neither** did, return `null`.
-
-The first node that sees *both* sides succeed is the answer; above it, every
-ancestor sees exactly one non-`null` side and just forwards it, so the LCA rides
-untouched up to the root.
+This is a **post-order** recursion: nothing happens on the way *down*, all the logic
+runs on the way *up*. Every node asks one question — *"did a target turn up on my
+left, my right, both, or neither?"* The **first** node that sees *both* sides succeed
+is the split point, so it is the LCA. Above it, every ancestor sees exactly one
+non-`null` side and just forwards it, so the answer rides untouched up to the root.
 
 ```java
 TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
@@ -44,19 +42,18 @@ TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
 }
 ```
 
-Every node is visited once, so this is **O(n)** time and **O(h)** stack space for
-a tree of height `h`.
+## Edge cases & gotchas
 
-## Watch it run
+- **A node is its own ancestor.** If `q` lives under `p`, the answer is `p` — the base
+  case fires at `p` and short-circuits the rest of that subtree.
+- **Return the node, not a boolean.** Passing the actual node up is what lets an
+  already-decided LCA sail to the root unchanged.
+- **Assumes both `p` and `q` exist** in the tree; if that's not guaranteed you need a
+  second pass (or found-count) to confirm.
 
-Build your own tree right in the visualizer — press **+** on an empty slot to add
-a child, **×** to prune, then switch to **Set p** / **Set q** and tap two nodes.
-Hit **Visualize LCA** and step through.
-
-Keep an eye on the **call stack** on the right: it grows as the recursion
-descends, and the answer becomes obvious the moment a frame sees *both*
-`leftLca` and `rightLca` resolve to non-`null` — that frame's node is the LCA,
-and it rides back up the stack unchanged.
+Build a tree in the visualizer (**+** adds a child, **×** prunes), switch to **Set p**
+/ **Set q** and tap two nodes, then step through. Watch the **call stack**: the answer
+becomes obvious the moment one frame sees both `leftLca` and `rightLca` resolve.
 
 ```viz
 type: lca
@@ -64,7 +61,3 @@ tree: [3, 5, 1, 6, 2, 0, 8, null, null, 7, 4]
 p: 5
 q: 1
 ```
-
-Try picking `p = 5` and `q = 4`: the answer is `5` itself, because a node is
-allowed to be its own ancestor — watch the base case fire and short-circuit the
-left subtree.
