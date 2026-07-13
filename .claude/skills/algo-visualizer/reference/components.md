@@ -213,6 +213,36 @@ CoordinateBoard({
 Dumb stateless render (no algorithm logic); colors via `vizStateColors`, motion
 via `VizTokens`. See `renderers/vertical_order/` for the reference instance.
 
+## Stack — `StackView`
+
+Structure primitive for **any LIFO stack** problem (balanced parentheses,
+monotonic stack / next-greater-element, DFS-with-explicit-stack, stock span).
+Always **horizontal**: elements are given **bottom → top** (index 0 = bottom at
+the left, last = top at the right). The single **top** slot — where both a push
+and a pop happen — is marked with a subtle accent band + a "top · push/pop" tag.
+
+Presentation adapts to the data:
+* **all-numeric** values render as **normalised bars** (height ∝ value, capped so
+  the stack never grows tall) — the increasing/decreasing shape is visible at a
+  glance;
+* anything else (short strings, e.g. bracket chars) renders as labelled **cells**.
+
+```dart
+StackView({
+  required List<Object> values,          // bottom → top; numbers → bars, else cells
+  Map<int, VizState> states = const {},  // per-element color; missing → inScope
+  String topLabel = 'top',               // text in the top (push/pop) tag
+  Map<int, String> captions = const {},  // small caption per element (e.g. 'idx 3')
+  String emptyLabel = 'empty stack',     // placeholder when values is empty
+  num? barMax,                           // stable bar-height reference (pass the
+                                         // whole input's max so heights don't jump)
+})
+```
+Dumb stateless render (no algorithm logic); colors via `vizStateColors`, motion +
+the gliding top tag/band via `VizTokens`. Self-fits via `FitToWidth`. See
+`renderers/valid_parentheses/` (cells) and `renderers/next_greater_element/`
+(bars) for reference instances.
+
 ## Recursion kit — `CallStackPanel` / `RecursionPhaseChip`
 
 Data-structure-agnostic panels for **any recursive algorithm** (tree/graph DFS,

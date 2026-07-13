@@ -72,6 +72,7 @@ flutter:
     - content/ds-algo/intervals/
     - content/ds-algo/linked-lists/
     - content/ds-algo/searching/
+    - content/ds-algo/stacks/
     - content/ds-algo/trees/
     # <<< generated content dirs
 

@@ -4,6 +4,8 @@ import 'renderers/delete_middle_node/delete_middle_node_view.dart';
 import 'renderers/html_embed.dart';
 import 'renderers/insert_interval/insert_interval_view.dart';
 import 'renderers/lca/lca_view.dart';
+import 'renderers/next_greater_element/next_greater_element_view.dart';
+import 'renderers/valid_parentheses/valid_parentheses_view.dart';
 import 'renderers/vertical_order/vertical_order_view.dart';
 
 /// Register all built-in visualizers. Called once at startup.
@@ -15,5 +17,7 @@ void registerVisualizers() {
   HtmlEmbed.register();
   InsertIntervalView.register();
   LcaView.register();
+  NextGreaterElementView.register();
+  ValidParenthesesView.register();
   VerticalOrderView.register();
 }

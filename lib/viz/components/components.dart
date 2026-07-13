@@ -16,6 +16,7 @@ export 'linked_list_view.dart';
 export 'panel.dart';
 export 'pseudocode_panel.dart';
 export 'result_banner.dart';
+export 'stack_view.dart';
 export 'step_progress.dart';
 export 'tabbed_panel.dart';
 export 'tree_canvas.dart';

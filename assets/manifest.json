@@ -54,6 +54,22 @@
           ]
         },
         {
+          "title": "Stacks",
+          "route": "/ds-algo/stacks",
+          "children": [
+            {
+              "title": "Valid Parentheses",
+              "route": "/ds-algo/stacks/valid-parentheses",
+              "asset": "content/ds-algo/stacks/valid-parentheses.md"
+            },
+            {
+              "title": "Next Greater Element",
+              "route": "/ds-algo/stacks/next-greater-element",
+              "asset": "content/ds-algo/stacks/next-greater-element.md"
+            }
+          ]
+        },
+        {
           "title": "Trees",
           "route": "/ds-algo/trees",
           "children": [

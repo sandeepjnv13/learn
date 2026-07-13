@@ -5,6 +5,8 @@ import 'package:learn/viz/renderers/insert_interval/insert_interval_algo.dart';
 import 'package:learn/viz/renderers/delete_middle_node/delete_middle_node_algo.dart';
 import 'package:learn/viz/renderers/lca/lca_algo.dart';
 import 'package:learn/viz/renderers/vertical_order/vertical_order_algo.dart';
+import 'package:learn/viz/renderers/next_greater_element/next_greater_element_algo.dart';
+import 'package:learn/viz/renderers/valid_parentheses/valid_parentheses_algo.dart';
 
 void main() {
   test('bubbleSort records frames and ends sorted', () {
@@ -283,6 +285,69 @@ void main() {
       expect(steps.last.status, VerticalOrderStatus.done);
       for (final s in steps) {
         expect(s.line, inInclusiveRange(1, verticalOrderPseudocode.length));
+      }
+    });
+  });
+
+  group('nextGreaterElement recorder', () {
+    test('classic case computes the right answers', () {
+      final steps = generateNgeSteps([2, 1, 2, 4, 3]);
+      expect(steps.last.status, NgeStatus.done);
+      // 2→4, 1→2, 2→4, 4→-1, 3→-1
+      expect(steps.last.nge, [4, 2, 4, -1, -1]);
+    });
+
+    test('strictly decreasing input yields all -1', () {
+      final steps = generateNgeSteps([5, 4, 3, 2, 1]);
+      expect(steps.last.nge, [-1, -1, -1, -1, -1]);
+    });
+
+    test('strictly increasing input resolves every earlier element', () {
+      final steps = generateNgeSteps([1, 2, 3, 4]);
+      expect(steps.last.nge, [2, 3, 4, -1]);
+    });
+
+    test('empty array terminates cleanly', () {
+      final steps = generateNgeSteps([]);
+      expect(steps.last.status, NgeStatus.done);
+      expect(steps.last.nge, isEmpty);
+    });
+
+    test('every step is a valid pseudocode line', () {
+      final steps = generateNgeSteps([2, 1, 2, 4, 3]);
+      for (final s in steps) {
+        expect(s.line, inInclusiveRange(1, ngePseudocode.length));
+      }
+    });
+  });
+
+  group('validParentheses recorder', () {
+    VpStatus run(String s) => generateValidParenthesesSteps(s).last.status;
+
+    test('well-formed nested brackets are valid', () {
+      expect(run('([{}])'), VpStatus.valid);
+      expect(run('()[]{}'), VpStatus.valid);
+    });
+
+    test('empty string is valid', () {
+      expect(run(''), VpStatus.valid);
+    });
+
+    test('mismatched pair is invalid', () {
+      expect(run('([)]'), VpStatus.invalid);
+    });
+
+    test('leftover openers are invalid', () {
+      expect(run('((('), VpStatus.invalid);
+    });
+
+    test('closer with empty stack is invalid', () {
+      expect(run(']'), VpStatus.invalid);
+    });
+
+    test('every step is a valid pseudocode line', () {
+      for (final s in generateValidParenthesesSteps('([{}])')) {
+        expect(s.line, inInclusiveRange(1, validParenthesesPseudocode.length));
       }
     });
   });

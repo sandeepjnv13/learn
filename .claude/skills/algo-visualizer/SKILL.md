@@ -51,7 +51,11 @@ Work in `lib/viz/renderers/<algo>/` (snake_case, e.g. `bubble_sort/`,
   **`RecursionPhaseChip`** for the live call stack and descend/return cue.
 - Items placed on a 2-D coordinate grid, grouped by column → **reuse
   `CoordinateBoard`** (`items` of `BoardItem(col,row,value,state)`, `activeColumn`).
-- Graph, stack/queue, dense matrix/grid → **new primitive needed** (not built yet).
+- LIFO stack (parentheses, monotonic stack / next-greater-element, DFS-with-stack)
+  → **reuse `StackView`** (horizontal; `values` bottom→top render as bars when
+  numeric else cells; `states`, `captions`, `topLabel`, `barMax`; the top
+  push/pop slot is auto-marked).
+- Graph, queue, dense matrix/grid → **new primitive needed** (not built yet).
   Build it per "Adding a new structure primitive" below **before** writing the view.
 
 ### 2. Write the step recorder — `<algo>_algo.dart`
@@ -133,8 +137,8 @@ status/result and that stepping is monotonic — mirror the `binarySearch` test 
 ## Adding a new structure primitive
 
 Only when the data structure doesn't exist yet. Already built: `ArrayCells`,
-`LinkedListView`, `TreeCanvas`, `CoordinateBoard` (plus the `CallStackPanel`
-recursion kit).
+`LinkedListView`, `TreeCanvas`, `CoordinateBoard`, `StackView` (plus the
+`CallStackPanel` recursion kit).
 Put a new one in `lib/viz/components/<name>.dart` and `export` it from
 `components.dart`. Follow the `ArrayCells` conventions so the kit stays one system:
 
@@ -161,11 +165,11 @@ Put a new one in `lib/viz/components/<name>.dart` and `export` it from
   inside the primitive.
 
 Primitives still to build as they come up: `GraphCanvas` (nodes + edges,
-directed/weighted — can reuse the recursion kit for DFS), `StackView`/`QueueView`
-(vertical / horizontal cell stack with a top/front marker), `Grid` (dense 2-D
-matrix cells for DP / flood-fill — distinct from the sparse `CoordinateBoard`).
-(`TreeCanvas`, `LinkedListView`, and `CoordinateBoard` already exist — reuse
-them; extend `TreeCanvas` for heaps.) Build the minimum the current
+directed/weighted — can reuse the recursion kit for DFS), `QueueView` (FIFO cell
+row with a front/back marker — `StackView` covers LIFO), `Grid` (dense 2-D matrix
+cells for DP / flood-fill — distinct from the sparse `CoordinateBoard`).
+(`TreeCanvas`, `LinkedListView`, `CoordinateBoard`, and `StackView` already exist
+— reuse them; extend `TreeCanvas` for heaps.) Build the minimum the current
 algorithm needs; generalize later.
 
 ## Checklist before finishing
