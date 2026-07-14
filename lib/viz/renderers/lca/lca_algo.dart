@@ -2,7 +2,7 @@
 /// (LeetCode 236), post-order recursion.
 ///
 /// Like every recorder in this kit we run the real algorithm once, up front,
-/// and record ONE [LcaStep] per pseudocode line executed — so stepping the UI
+/// and record ONE [LcaStep] per pseudocode line executed - so stepping the UI
 /// is pure index movement and can never double-fire. Because the algorithm is
 /// recursive, each step also snapshots the live **call stack** (as shared
 /// [RecursionFrame]s) and its [RecursionPhase], which is what makes the
@@ -103,7 +103,7 @@ List<LcaStep> generateLcaSteps({
       line: 1,
       phase: RecursionPhase.base,
       stack: [],
-      log: 'The tree is empty — there is no ancestor to find.',
+      log: 'The tree is empty - there is no ancestor to find.',
       status: LcaStatus.notFound,
     ));
     return steps;
@@ -180,7 +180,7 @@ List<LcaStep> generateLcaSteps({
     final f = _Frame(nodeId, value[nodeId]!);
     stack.add(f);
 
-    // Line 2 — base case check (this also visually "enters" the frame).
+    // Line 2 - base case check (this also visually "enters" the frame).
     final isTarget = nodeId == pId || nodeId == qId;
     add(
       line: 2,
@@ -190,11 +190,11 @@ List<LcaStep> generateLcaSteps({
           ? 'node ${f.value} == ${nodeId == pId ? 'p' : 'q'} → base case'
           : 'node ${f.value}: not null, not p, not q → keep going',
       log: 'Enter lca(${f.value}). '
-          '${isTarget ? 'It is a target — base case.' : 'Not a target — recurse into its children.'}',
+          '${isTarget ? 'It is a target - base case.' : 'Not a target - recurse into its children.'}',
     );
 
     if (isTarget) {
-      // Line 3 — return root (itself) up.
+      // Line 3 - return root (itself) up.
       returnedFound[nodeId] = nodeId;
       add(
         line: 3,
@@ -203,13 +203,13 @@ List<LcaStep> generateLcaSteps({
         returningId: nodeId,
         returnValue: '${f.value}',
         badge: 'return node ${f.value}',
-        log: 'Base case hit — return node ${f.value} up to its caller.',
+        log: 'Base case hit - return node ${f.value} up to its caller.',
       );
       stack.removeLast();
       return nodeId;
     }
 
-    // Line 4 — leftLca = lca(root.left)
+    // Line 4 - leftLca = lca(root.left)
     f.leftStarted = true;
     final leftId = left[nodeId];
     if (leftId == null) {
@@ -242,7 +242,7 @@ List<LcaStep> generateLcaSteps({
       );
     }
 
-    // Line 5 — rightLca = lca(root.right)
+    // Line 5 - rightLca = lca(root.right)
     f.rightStarted = true;
     final rightId = right[nodeId];
     if (rightId == null) {
@@ -275,7 +275,7 @@ List<LcaStep> generateLcaSteps({
       );
     }
 
-    // Line 6 — both sides non-null?
+    // Line 6 - both sides non-null?
     final both = f.leftVal != null && f.rightVal != null;
     add(
       line: 6,
@@ -289,7 +289,7 @@ List<LcaStep> generateLcaSteps({
 
     int? result;
     if (both) {
-      // Line 7 — this node is the LCA.
+      // Line 7 - this node is the LCA.
       resultId = nodeId;
       result = nodeId;
       returnedFound[nodeId] = nodeId;
@@ -306,7 +306,7 @@ List<LcaStep> generateLcaSteps({
         status: isRoot ? LcaStatus.found : LcaStatus.running,
       );
     } else if (f.leftVal != null) {
-      // Line 8 — bubble the left result up.
+      // Line 8 - bubble the left result up.
       result = f.leftVal;
       returnedFound[nodeId] = f.leftVal!;
       add(
@@ -321,7 +321,7 @@ List<LcaStep> generateLcaSteps({
         status: isRoot ? LcaStatus.found : LcaStatus.running,
       );
     } else {
-      // Line 9 — return rightLca (may itself be null).
+      // Line 9 - return rightLca (may itself be null).
       result = f.rightVal;
       if (f.rightVal == null) {
         returnedNull.add(nodeId);
@@ -365,8 +365,8 @@ List<LcaStep> generateLcaSteps({
         ? 'no common ancestor'
         : 'LCA = node ${value[answer]}',
     log: answer == null
-        ? 'Recursion finished — p and q have no common ancestor in this tree.'
-        : 'Recursion finished — the lowest common ancestor is node '
+        ? 'Recursion finished - p and q have no common ancestor in this tree.'
+        : 'Recursion finished - the lowest common ancestor is node '
             '${value[answer]}.',
     status: answer == null ? LcaStatus.notFound : LcaStatus.found,
   ));

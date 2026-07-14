@@ -1,7 +1,7 @@
 /// Deterministic step model for the 3Sum (LeetCode 15) two-pointer visualizer.
 ///
 /// Like every recorder in the kit we run the real algorithm once, up front, and
-/// emit ONE [ThreeSumStep] per pseudocode line executed — stepping the UI is
+/// emit ONE [ThreeSumStep] per pseudocode line executed - stepping the UI is
 /// then pure index movement and can never double-fire. The array is **sorted**
 /// first (the whole reason the converging two-pointer sweep works), then for
 /// each fixed anchor `i` a `lo`/`hi` pair walks inward.
@@ -64,7 +64,7 @@ List<ThreeSumStep> generateThreeSumSteps(List<num> rawArray) {
 
   List<List<num>> snap() => [for (final t in found) List<num>.from(t)];
 
-  // 1 — sort. Sorting is the precondition that makes converging pointers valid.
+  // 1 - sort. Sorting is the precondition that makes converging pointers valid.
   steps.add(ThreeSumStep(
     line: 1,
     status: ThreeSumStatus.sorting,
@@ -80,14 +80,14 @@ List<ThreeSumStep> generateThreeSumSteps(List<num> rawArray) {
       line: 12,
       status: ThreeSumStatus.done,
       badge: 'fewer than 3 numbers',
-      log: 'Fewer than 3 numbers — no triplet is possible. Return [].',
+      log: 'Fewer than 3 numbers - no triplet is possible. Return [].',
       triplets: snap(),
     ));
     return steps;
   }
 
   for (var i = 0; i <= n - 3; i++) {
-    // 2 — fix the anchor for this pass.
+    // 2 - fix the anchor for this pass.
     steps.add(ThreeSumStep(
       line: 2,
       i: i,
@@ -98,23 +98,23 @@ List<ThreeSumStep> generateThreeSumSteps(List<num> rawArray) {
       triplets: snap(),
     ));
 
-    // 3 — skip a repeated anchor so triplets are not duplicated.
+    // 3 - skip a repeated anchor so triplets are not duplicated.
     final dupAnchor = i > 0 && nums[i] == nums[i - 1];
     steps.add(ThreeSumStep(
       line: 3,
       i: i,
       badge: i > 0
           ? 'nums[$i] (${nums[i]}) == nums[${i - 1}] (${nums[i - 1]}) → $dupAnchor'
-          : 'first anchor — nothing before it',
+          : 'first anchor - nothing before it',
       log: dupAnchor
-          ? 'nums[$i] repeats the previous anchor — skip it to avoid duplicate '
+          ? 'nums[$i] repeats the previous anchor - skip it to avoid duplicate '
               'triplets.'
-          : 'Anchor is not a repeat — proceed.',
+          : 'Anchor is not a repeat - proceed.',
       triplets: snap(),
     ));
     if (dupAnchor) continue;
 
-    // 4 — set the pointers on the remaining sub-array.
+    // 4 - set the pointers on the remaining sub-array.
     var lo = i + 1;
     var hi = n - 1;
     steps.add(ThreeSumStep(
@@ -128,7 +128,7 @@ List<ThreeSumStep> generateThreeSumSteps(List<num> rawArray) {
     ));
 
     while (true) {
-      // 5 — loop guard.
+      // 5 - loop guard.
       final cond = lo < hi;
       steps.add(ThreeSumStep(
         line: 5,
@@ -137,13 +137,13 @@ List<ThreeSumStep> generateThreeSumSteps(List<num> rawArray) {
         hi: hi,
         badge: 'lo ($lo) < hi ($hi) → $cond',
         log: cond
-            ? 'Pointers have not crossed — keep scanning.'
-            : 'lo met hi — this anchor is exhausted.',
+            ? 'Pointers have not crossed - keep scanning.'
+            : 'lo met hi - this anchor is exhausted.',
         triplets: snap(),
       ));
       if (!cond) break;
 
-      // 6 — sum the three.
+      // 6 - sum the three.
       final s = nums[i] + nums[lo] + nums[hi];
       steps.add(ThreeSumStep(
         line: 6,
@@ -157,7 +157,7 @@ List<ThreeSumStep> generateThreeSumSteps(List<num> rawArray) {
         triplets: snap(),
       ));
 
-      // 7 — is it zero?
+      // 7 - is it zero?
       final isZero = s == 0;
       steps.add(ThreeSumStep(
         line: 7,
@@ -171,7 +171,7 @@ List<ThreeSumStep> generateThreeSumSteps(List<num> rawArray) {
       ));
 
       if (isZero) {
-        // 8 — record the triplet.
+        // 8 - record the triplet.
         found.add([nums[i], nums[lo], nums[hi]]);
         steps.add(ThreeSumStep(
           line: 8,
@@ -185,7 +185,7 @@ List<ThreeSumStep> generateThreeSumSteps(List<num> rawArray) {
           triplets: snap(),
         ));
 
-        // 9 — step both inward, skipping equal values on each side.
+        // 9 - step both inward, skipping equal values on each side.
         final prevLo = lo, prevHi = hi;
         lo++;
         hi--;
@@ -209,7 +209,7 @@ List<ThreeSumStep> generateThreeSumSteps(List<num> rawArray) {
           triplets: snap(),
         ));
       } else if (s < 0) {
-        // 10 — too small: only a bigger value can help, so raise lo.
+        // 10 - too small: only a bigger value can help, so raise lo.
         lo++;
         steps.add(ThreeSumStep(
           line: 10,
@@ -219,11 +219,11 @@ List<ThreeSumStep> generateThreeSumSteps(List<num> rawArray) {
           sum: s,
           changed: const {'lo'},
           badge: 's ($s) < 0 → lo++',
-          log: 'Sum is too small — only a larger value helps, so lo++ → $lo.',
+          log: 'Sum is too small - only a larger value helps, so lo++ → $lo.',
           triplets: snap(),
         ));
       } else {
-        // 11 — too big: only a smaller value can help, so lower hi.
+        // 11 - too big: only a smaller value can help, so lower hi.
         hi--;
         steps.add(ThreeSumStep(
           line: 11,
@@ -233,14 +233,14 @@ List<ThreeSumStep> generateThreeSumSteps(List<num> rawArray) {
           sum: s,
           changed: const {'hi'},
           badge: 's ($s) > 0 → hi−−',
-          log: 'Sum is too big — only a smaller value helps, so hi−− → $hi.',
+          log: 'Sum is too big - only a smaller value helps, so hi−− → $hi.',
           triplets: snap(),
         ));
       }
     }
   }
 
-  // 12 — done.
+  // 12 - done.
   steps.add(ThreeSumStep(
     line: 12,
     status: ThreeSumStatus.done,
@@ -248,8 +248,8 @@ List<ThreeSumStep> generateThreeSumSteps(List<num> rawArray) {
         ? 'no triplet sums to 0'
         : '${found.length} triplet(s) found',
     log: found.isEmpty
-        ? 'Scan complete — no triplet sums to zero. Return [].'
-        : 'Scan complete — return ${found.length} triplet(s).',
+        ? 'Scan complete - no triplet sums to zero. Return [].'
+        : 'Scan complete - return ${found.length} triplet(s).',
     triplets: snap(),
   ));
   return steps;

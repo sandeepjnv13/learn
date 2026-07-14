@@ -76,7 +76,7 @@ class ContentService {
             );
           }
         } catch (_) {
-          // Malformed frontmatter — ignore, keep body as-is.
+          // Malformed frontmatter - ignore, keep body as-is.
         }
       }
     }

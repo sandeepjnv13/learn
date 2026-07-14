@@ -5,7 +5,7 @@
 /// ONE [DmnStep] per pseudocode line executed, so stepping the UI is pure index
 /// movement and can never double-fire.
 ///
-/// Approach: two pointers walk the list — `fast` moves two nodes per iteration,
+/// Approach: two pointers walk the list - `fast` moves two nodes per iteration,
 /// `slow` one, and `prev` (starting null) trails one step behind `slow`. When
 /// `fast` falls off the end, `slow` sits on the middle node and `prev` is the
 /// node just before it, so `prev.next = slow.next` unlinks the middle. A list of
@@ -66,7 +66,7 @@ List<DmnStep> generateDeleteMiddleNodeSteps(List<num> values) {
   final n = values.length;
   final steps = <DmnStep>[];
 
-  // Line 1 — head is null?  (true only for an empty list)
+  // Line 1 - head is null?  (true only for an empty list)
   final headNull = n == 0;
   steps.add(DmnStep(
     line: 1,
@@ -77,13 +77,13 @@ List<DmnStep> generateDeleteMiddleNodeSteps(List<num> values) {
   if (headNull) {
     steps.add(const DmnStep(
       line: 1,
-      log: 'Empty list — nothing to delete → return null.',
+      log: 'Empty list - nothing to delete → return null.',
       status: DmnStatus.empty,
     ));
     return steps;
   }
 
-  // Line 2 — head.next is null?  (true only for a single node)
+  // Line 2 - head.next is null?  (true only for a single node)
   final single = n == 1;
   steps.add(DmnStep(
     line: 2,
@@ -94,14 +94,14 @@ List<DmnStep> generateDeleteMiddleNodeSteps(List<num> values) {
   if (single) {
     steps.add(const DmnStep(
       line: 2,
-      log: 'Only one node — it is the middle, so deleting it empties the '
+      log: 'Only one node - it is the middle, so deleting it empties the '
           'list → return null.',
       status: DmnStatus.empty,
     ));
     return steps;
   }
 
-  // Line 3-5 — initialise the pointers.
+  // Line 3-5 - initialise the pointers.
   int slow = 0;
   steps.add(DmnStep(
     line: 3,
@@ -129,7 +129,7 @@ List<DmnStep> generateDeleteMiddleNodeSteps(List<num> values) {
     changed: {'prev'},
   ));
 
-  // Line 6-9 — advance until fast walks off the end.
+  // Line 6-9 - advance until fast walks off the end.
   while (true) {
     final fastNotNull = fast != null;
     final fastNextNotNull = fast != null && fast + 1 <= n - 1;
@@ -178,7 +178,7 @@ List<DmnStep> generateDeleteMiddleNodeSteps(List<num> values) {
     ));
   }
 
-  // Line 10 — unlink the middle node (slow), reconnecting prev to slow.next.
+  // Line 10 - unlink the middle node (slow), reconnecting prev to slow.next.
   final removedIndex = slow;
   final removedVal = values[removedIndex];
   final nextOfSlow = slow + 1 <= n - 1 ? 'node ${slow + 1}' : 'null';
@@ -191,12 +191,12 @@ List<DmnStep> generateDeleteMiddleNodeSteps(List<num> values) {
     removedIndex: removedIndex,
     badge: 'prev.next ← slow.next',
     log: 'Middle is node $removedIndex (value $removedVal). '
-        'Link prev (node $prev) straight to $nextOfSlow — node '
+        'Link prev (node $prev) straight to $nextOfSlow - node '
         '$removedIndex is now unlinked.',
     status: DmnStatus.removed,
   ));
 
-  // Line 11 — return the (unchanged) head of the healed list.
+  // Line 11 - return the (unchanged) head of the healed list.
   steps.add(DmnStep(
     line: 11,
     slow: slow,
@@ -204,7 +204,7 @@ List<DmnStep> generateDeleteMiddleNodeSteps(List<num> values) {
     prev: prev,
     fastAtNull: fast == null,
     removedIndex: removedIndex,
-    log: 'Return head — the list now skips the deleted middle node.',
+    log: 'Return head - the list now skips the deleted middle node.',
     status: DmnStatus.removed,
   ));
 

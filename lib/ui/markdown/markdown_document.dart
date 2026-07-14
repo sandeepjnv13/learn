@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:go_router/go_router.dart';
+import 'package:markdown/markdown.dart' as md;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:yaml/yaml.dart';
 
@@ -8,13 +9,44 @@ import '../../theme/app_theme.dart';
 import '../../viz/registry.dart';
 import '../../viz/viz_focus.dart';
 
+/// Slugifies heading text into a GitHub-style anchor, e.g.
+/// "1013. Partition Array" -> "1013-partition-array".
+String _slugify(String text) {
+  final lower = text.toLowerCase().replaceAll(RegExp(r"[^\w\s-]"), '');
+  return lower.trim().replaceAll(RegExp(r'\s+'), '-');
+}
+
+/// Renders `h2` headings wrapped in a keyed anchor so in-page `#slug` links
+/// (e.g. from an "At a Glance" index) can scroll to them.
+class _AnchorHeadingBuilder extends MarkdownElementBuilder {
+  final TextStyle? style;
+  final Map<String, GlobalKey> anchors;
+  _AnchorHeadingBuilder(this.style, this.anchors);
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    final text = element.textContent;
+    final key = anchors.putIfAbsent(_slugify(text), () => GlobalKey());
+    return Padding(
+      key: key,
+      padding: const EdgeInsets.only(top: 8),
+      child: Text(text, style: style),
+    );
+  }
+}
+
 /// Renders a markdown body, splitting out ```viz fenced blocks and rendering
 /// each as a live visualizer. Everything else renders as normal markdown
 /// (including ordinary code fences like ```dart).
 class MarkdownDocument extends StatelessWidget {
   final String body;
   final String pageAsset;
-  const MarkdownDocument({
+  MarkdownDocument({
     super.key,
     required this.body,
     required this.pageAsset,
@@ -31,6 +63,10 @@ class MarkdownDocument extends StatelessWidget {
   /// to this cap on large monitors (keeping a little breathing room), and
   /// shrinks to fit on smaller ones.
   static const double _contentMaxWidth = 1500;
+
+  /// Shared across all markdown segments on this page so `#slug` links can
+  /// find the h2 heading they point at, however far away in the document.
+  final Map<String, GlobalKey> _anchorKeys = {};
 
   @override
   Widget build(BuildContext context) {
@@ -98,6 +134,12 @@ class MarkdownDocument extends StatelessWidget {
           selectable: true,
           styleSheet: _styleSheet(context),
           onTapLink: (text, href, title) => _onTapLink(context, href),
+          builders: {
+            'h2': _AnchorHeadingBuilder(
+              _styleSheet(context).h2,
+              _anchorKeys,
+            ),
+          },
         ),
       ),
     );
@@ -105,7 +147,18 @@ class MarkdownDocument extends StatelessWidget {
 
   void _onTapLink(BuildContext context, String? href) {
     if (href == null) return;
-    if (href.startsWith('/')) {
+    if (href.startsWith('#')) {
+      final key = _anchorKeys[href.substring(1)];
+      final targetContext = key?.currentContext;
+      if (targetContext != null) {
+        Scrollable.ensureVisible(
+          targetContext,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          alignment: 0.1,
+        );
+      }
+    } else if (href.startsWith('/')) {
       context.go(href); // internal route
     } else {
       launchUrl(Uri.parse(href), mode: LaunchMode.externalApplication);
@@ -134,6 +187,7 @@ class MarkdownDocument extends StatelessWidget {
         border: Border(left: BorderSide(color: scheme.primary, width: 4)),
       ),
       blockquotePadding: const EdgeInsets.all(12),
+      tableColumnWidth: const IntrinsicColumnWidth(),
       a: TextStyle(
         color: scheme.primary,
         decoration: TextDecoration.underline,

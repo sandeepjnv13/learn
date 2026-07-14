@@ -17,7 +17,7 @@ class EventLog extends StatefulWidget {
   final bool expand;
 
   /// When false, renders just the scrolling list without the surrounding
-  /// [Panel] card — used when embedded inside a shared shell such as a
+  /// [Panel] card - used when embedded inside a shared shell such as a
   /// [TabbedPanel].
   final bool framed;
 

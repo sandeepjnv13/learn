@@ -14,7 +14,7 @@ class PseudocodePanel extends StatelessWidget {
   final String title;
 
   /// When false, renders just the code lines without the surrounding [Panel]
-  /// card — used when embedded inside a shared shell such as a [TabbedPanel].
+  /// card - used when embedded inside a shared shell such as a [TabbedPanel].
   final bool framed;
 
   const PseudocodePanel({

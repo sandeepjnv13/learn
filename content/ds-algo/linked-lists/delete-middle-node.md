@@ -17,7 +17,7 @@ bullets:
   - slow += 1, fast += 2 each iteration → slow lands on the middle in one pass.
   - Keep prev trailing one step behind slow (deleting in a singly-linked list needs the node before the target).
   - Unlink with prev.next = slow.next.
-gotcha: Lists shorter than two nodes have no "previous" — handle head == null and a single node up front (deleting the only node returns null) before the walk.
+gotcha: Lists shorter than two nodes have no "previous" - handle head == null and a single node up front (deleting the only node returns null) before the walk.
 complexity: O(n) time · O(1) space
 ```
 
@@ -41,9 +41,9 @@ return head
 
 ## Edge cases & gotchas
 
-- **0 or 1 nodes:** there's no `prev` to splice from — return `null` (deleting the
+- **0 or 1 nodes:** there's no `prev` to splice from - return `null` (deleting the
   only node empties the list) before starting the walk.
-- **Loop guard:** `fast != null && fast.next != null` — checking only one lets
+- **Loop guard:** `fast != null && fast.next != null` - checking only one lets
   `fast.next.next` dereference null on even-length lists.
 - **Odd vs even length** land the middle on different nodes; the `⌊n/2⌋` definition
   makes both fall out of the same walk.

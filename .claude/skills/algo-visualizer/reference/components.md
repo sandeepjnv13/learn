@@ -17,19 +17,19 @@ Design tokens & semantic colors live in `viz_tokens.dart` (re-exported):
 Monospace text: `AppTheme.mono(context, size: 13, color: ...)` from
 `lib/theme/app_theme.dart`.
 
-**Motion.** These tokens are also the *only* motion vocabulary — animate with the
+**Motion.** These tokens are also the *only* motion vocabulary - animate with the
 `Animated*` widgets on `VizTokens.spring` + `moveDuration` (boxes/nodes/pointers)
 and the pulse pattern on `pulseDuration` (value/state changes). For monotonic
-*scalar* interpolation, spring overshoot is wrong — use a plain `easeInOutCubic`
+*scalar* interpolation, spring overshoot is wrong - use a plain `easeInOutCubic`
 (add a shared `double easeInOutCubic(double t)` to `viz_tokens.dart` if absent).
 See **SKILL.md → "Motion & animation craft"** for the choreography principles,
 tasteful event accents, and the optional pointer-trail/ghosting technique before
 adding motion to a primitive.
 
-## Approach glance card — `ApproachCard` (`type: approach`)
+## Approach glance card - `ApproachCard` (`type: approach`)
 
 A **static, non-interactive "glance card"** that heads every problem page: the
-one-look answer to *"how is this solved?"*. It is **not** a stepper — no controls,
+one-look answer to *"how is this solved?"*. It is **not** a stepper - no controls,
 no editable input, no focus/fit chrome (it's registered as a *static* viz, so
 `VizLauncher` renders it plainly inline). It shows the **technique name**, a small
 **schematic** (a hand-drawn hint keyed by `pattern`), a few **mechanic bullets**, an
@@ -43,7 +43,7 @@ technique: Monotonic decreasing stack   # the headline
 pattern: monotonic-stack                # selects the schematic (see list below)
 idea: Keep indices whose answer is unknown, values decreasing bottom→top.
 bullets:                                # 2–4 short "moves that make it work"
-  - Pop every top smaller than the current value — it just found its answer
+  - Pop every top smaller than the current value - it just found its answer
   - Push the current index; leftovers at the end resolve to -1
 gotcha: Use a strict `<` so equal values don't resolve each other.
 complexity: O(n) time · O(n) space
@@ -63,28 +63,30 @@ labelled box):
 | `coordinate` | sparse grid, dots at (col,row), active column band | vertical order, group-by-coordinate |
 | `interval` | number line, grey intervals + one growing merged bar | insert/merge intervals |
 | `adjacent-swap` | bars with two adjacent highlighted + swap arc | bubble sort, adjacent-compare passes |
+| `running-sum` | zigzag sum crossing a dashed target line, hit markers where it resets | partition-by-sum, subarray-sum-equals-target |
+| `gas-station` | gas / cost cell rows + a runningGas baseline plot (signed bars); the below-zero bar is flagged and the next station marked `start` | gas station, reset-start-on-deficit greedy |
 
 Need a structure with no matching schematic? Add a new `case` to
 `_SchematicPainter` in `lib/viz/components/approach_card.dart` (theme-aware, drawn
 from the same `ColorScheme` + semantic hues as the rest of the kit), then list it in
-the table above. Keep each schematic a **small static hint**, not a full diagram —
+the table above. Keep each schematic a **small static hint**, not a full diagram -
 it points at the idea, the interactive viz below does the walking-through.
 
-> **Schematic label placement — avoid text overlap.** A schematic caption's origin
+> **Schematic label placement - avoid text overlap.** A schematic caption's origin
 > and `align` are its *anchor*, and the card lays out at only ~288px of drawable
 > width in desktop row mode (the `SizedBox(width: 320)` minus padding). So two
 > captions anchored to the **same edge or point will collide** at that width even
 > if they look fine wider. Rules when adding/placing `_text` captions:
-> - Give the schematic **at most one caption per band** — top-left title, top-right
+> - Give the schematic **at most one caption per band** - top-left title, top-right
 >   mechanic, bottom-center summary. Never put two labels in the same band.
 > - **Never anchor a second label at `r.center.dx`** if a corner label shares that
->   band — a center-anchored `TextAlign.right`/`left` string extends *toward* the
+>   band - a center-anchored `TextAlign.right`/`left` string extends *toward* the
 >   corner and overruns it. Pin the second label to the opposite edge (`r.right`
 >   with `align: TextAlign.right`, or `r.left` with `align: TextAlign.left`).
 > - Keep captions ≤ ~24 chars; the amber mechanic line and the muted title must not
 >   each exceed roughly half the width or they meet in the middle.
 > - After adding a schematic, eyeball it at the **narrow (≤620px, stacked) and the
->   desktop row (320px card) widths** — the row width is the tight case.
+>   desktop row (320px card) widths** - the row width is the tight case.
 
 ```dart
 ApproachCard({
@@ -97,7 +99,7 @@ ApproachCard({
 })
 ```
 
-## Layout — `VizScaffold`
+## Layout - `VizScaffold`
 
 The full-page shell. Desktop = info column (left) | stage (right), height-bounded so
 only the log scrolls; narrow stacks. Fills the viewport automatically in focus mode.
@@ -115,7 +117,7 @@ VizScaffold({
 })
 ```
 
-## Controls — `ControlBar`
+## Controls - `ControlBar`
 
 Owns no state; you pass flags + callbacks. Renders Step-back / Auto(Pause/Replay) /
 Step-forward / Reset, with an optional leading `input` slot.
@@ -133,11 +135,11 @@ ControlBar({
 })
 ```
 
-## Preset examples — `PresetPicker` / `VizPreset`
+## Preset examples - `PresetPicker` / `VizPreset`
 
 A dropdown of **preset example inputs**, placed in the `ControlBar.input` slot
 next to the editable fields. **Every step-by-step visualizer with editable input
-must offer one** — 3–4 presets that span the algorithm's shapes, *plus* the
+must offer one** - 3–4 presets that span the algorithm's shapes, *plus* the
 frequently-missed edge cases (mark those `edgeCase: true`). Selecting a preset
 loads it (the view writes its input controllers, then calls its `_rebuild`);
 editing the loaded values is still allowed.
@@ -162,7 +164,7 @@ static const List<(VizPreset, List<num>)> _presets = [
   (VizPreset('Strictly decreasing',
       detail: 'nothing resolves until the end', edgeCase: true), [5, 4, 3, 2, 1]),
   (VizPreset('All equal',
-      detail: 'equal is NOT greater — all −1', edgeCase: true), [3, 3, 3, 3]),
+      detail: 'equal is NOT greater - all −1', edgeCase: true), [3, 3, 3, 3]),
   (VizPreset('Single element', detail: 'no successor', edgeCase: true), [7]),
 ];
 
@@ -175,11 +177,11 @@ void _loadPreset(int i) {
 //                            onSelected: _loadPreset) then the TextField(s).
 ```
 For **in-canvas** builders (trees: `lca`, `vertical_order`) there are no text
-fields — the preset carries a level-order list (+ any p/q), and `_loadPreset`
+fields - the preset carries a level-order list (+ any p/q), and `_loadPreset`
 reseeds the tree, rebuilds steps, and drops back into run mode. See
 `renderers/lca/` and `renderers/vertical_order/` for that variant.
 
-## Pseudocode — `PseudocodePanel`
+## Pseudocode - `PseudocodePanel`
 
 ```dart
 PseudocodePanel({
@@ -189,7 +191,7 @@ PseudocodePanel({
 })
 ```
 
-## Variables — `VariablesPanel` / `VizVar`
+## Variables - `VariablesPanel` / `VizVar`
 
 Each var is a `PulseChip` that flashes when `changed` flips or the value changes.
 
@@ -198,13 +200,13 @@ VizVar(String name, String value, {bool changed = false})
 VariablesPanel({ required List<VizVar> vars, String title = 'Variables' })
 ```
 
-## Comparison — `ComparisonBadge`
+## Comparison - `ComparisonBadge`
 
 ```dart
 ComparisonBadge({ required String? text })  // null → empty spacer; animates on change
 ```
 
-## Progress — `StepProgress`
+## Progress - `StepProgress`
 
 ```dart
 StepProgress({
@@ -214,7 +216,7 @@ StepProgress({
 })
 ```
 
-## Event log — `EventLog`
+## Event log - `EventLog`
 
 ```dart
 EventLog({
@@ -226,7 +228,7 @@ EventLog({
 ```
 Typical: `EventLog(entries: [for (var i = 0; i <= _index; i++) _steps[i].log], expand: true)`.
 
-## Result — `ResultBanner` / `ResultKind`
+## Result - `ResultBanner` / `ResultKind`
 
 ```dart
 ResultBanner({ required ResultKind? kind, required String? message })
@@ -242,7 +244,7 @@ Legend({
 })
 ```
 
-## Panel (card shell) — for building new primitives/panels
+## Panel (card shell) - for building new primitives/panels
 
 ```dart
 Panel({
@@ -253,7 +255,7 @@ Panel({
 })
 ```
 
-## Fit-to-width — `FitToWidth`
+## Fit-to-width - `FitToWidth`
 
 Wrap any **fixed-size element visual** so it shrinks to fit the available width
 instead of overflowing into a horizontal scroll when there are many inputs. Scales
@@ -270,11 +272,12 @@ FitToWidth({
 })
 ```
 `ArrayCells`, `LinkedListView`, and `TreeCanvas` already use it internally, so
-callers just drop the primitive into the stage — it self-fits.
+callers just drop the primitive into the stage - it self-fits.
 
-## Structure primitives — `ArrayCells` / `LinkedListView` / `TreeCanvas`
+## Structure primitives - `ArrayCells` / `BaselineBarPlot` / `LinkedListView` / `TreeCanvas`
 
 The built-in structure visuals. Reuse `ArrayCells` for anything array/pointer-shaped;
+`BaselineBarPlot` for a signed running-total plotted around a zero baseline;
 `LinkedListView` for singly-linked lists; `TreeCanvas` for binary trees / BSTs.
 
 ```dart
@@ -284,6 +287,16 @@ ArrayCells({
   required List<num> values,
   Map<int, VizState> states = const {},   // per-index color; missing → inactive
   List<ArrayPointer> pointers = const [], // lane of labeled markers above the cells
+  bool showIndices = true,                // off → share one index axis when stacking rows
+})
+
+// Signed bars around a dashed zero line: positive rise, negative drop, colored
+// by state. Same 56px column stride as ArrayCells, so stack it under gas/cost
+// rows and the columns line up. Good for runningGas / prefix-balance plots.
+BaselineBarPlot({
+  required List<num> values,
+  Map<int, VizState> states = const {},   // per-index color; missing → inactive
+  double height = 168,
 })
 
 LinkedNodePointer(String label, int index, {Color? color}) // index == length parks on the null sentinel
@@ -314,14 +327,14 @@ TreeCanvas({
 })
 ```
 Cells/nodes animate color/scale with the spring curve; `processing`/`found` get
-emphasis. All three **self-fit** via `FitToWidth` — a long input shrinks to fit the
+emphasis. All three **self-fit** via `FitToWidth` - a long input shrinks to fit the
 width rather than scrolling. **Build a new primitive** (see SKILL.md) for graphs,
 stacks/queues, and grids, following the same tokens + `states` + pointer/tag + fit
 conventions.
 
-## Coordinate board — `CoordinateBoard` / `BoardItem`
+## Coordinate board - `CoordinateBoard` / `BoardItem`
 
-Structure primitive for **coordinate-grouping** problems — vertical order
+Structure primitive for **coordinate-grouping** problems - vertical order
 traversal (LeetCode 987), group-by-column/diagonal, bucket-by-key. Places each
 item at its integer `(col, row)`: columns left→right by column value, rows
 top→bottom by row value, items sharing a cell laid side by side sorted by value.
@@ -339,17 +352,17 @@ CoordinateBoard({
 Dumb stateless render (no algorithm logic); colors via `vizStateColors`, motion
 via `VizTokens`. See `renderers/vertical_order/` for the reference instance.
 
-## Stack — `StackView`
+## Stack - `StackView`
 
 Structure primitive for **any LIFO stack** problem (balanced parentheses,
 monotonic stack / next-greater-element, DFS-with-explicit-stack, stock span).
 Always **horizontal**: elements are given **bottom → top** (index 0 = bottom at
-the left, last = top at the right). The single **top** slot — where both a push
-and a pop happen — is marked with a subtle accent band + a "top · push/pop" tag.
+the left, last = top at the right). The single **top** slot - where both a push
+and a pop happen - is marked with a subtle accent band + a "top · push/pop" tag.
 
 Presentation adapts to the data:
 * **all-numeric** values render as **normalised bars** (height ∝ value, capped so
-  the stack never grows tall) — the increasing/decreasing shape is visible at a
+  the stack never grows tall) - the increasing/decreasing shape is visible at a
   glance;
 * anything else (short strings, e.g. bracket chars) renders as labelled **cells**.
 
@@ -365,7 +378,7 @@ StackView({
   bool compact = false,                  // bar mode: tighten spacing so a long
                                          // monotonic stack reads as one silhouette
   bool connectTops = false,              // bar mode: draw a polyline + dots through
-                                         // the bar tops — the "graph on top of the
+                                         // the bar tops - the "graph on top of the
                                          // bars" that makes the monotonic shape clear
 })
 ```
@@ -378,7 +391,7 @@ the gliding top tag/band via `VizTokens`. Self-fits via `FitToWidth`. See
 `renderers/valid_parentheses/` (cells) and `renderers/next_greater_element/`
 (bars) for reference instances.
 
-## Recursion kit — `CallStackPanel` / `RecursionPhaseChip`
+## Recursion kit - `CallStackPanel` / `RecursionPhaseChip`
 
 Data-structure-agnostic panels for **any recursive algorithm** (tree/graph DFS,
 backtracking, divide-and-conquer, DP-on-recursion). Compose these instead of
@@ -403,7 +416,7 @@ CallStackPanel({ required List<RecursionFrame> frames, String title = 'Call stac
 // newest frame on top; grows/shrinks with the recursion; internal-scrolls when deep.
 
 RecursionPhaseChip({ required RecursionPhase phase })
-// the big DESCEND / BASE / COMBINE / RETURN cue — the thing that makes recursion legible.
+// the big DESCEND / BASE / COMBINE / RETURN cue - the thing that makes recursion legible.
 ```
 A recursion recorder emits one step per pseudocode line as usual, and each step
 additionally carries a `List<RecursionFrame>` snapshot + a `RecursionPhase`; the view

@@ -9,12 +9,15 @@ For deeper detail see [ARCHITECTURE.md](ARCHITECTURE.md).
 content is plain **markdown** (`content/…`) and any page can host an interactive
 **visualizer**. Deploys to **GitHub Pages** on push to `main`.
 
-Requirements are explicitly **fluid/negotiable** — confirm direction before large
+Requirements are explicitly **fluid/negotiable** - confirm direction before large
 or destructive changes.
+
+**Style: no em dashes.** Never use the "—" character anywhere in this project
+(content, code, comments, docs). Use a hyphen with spaces (" - ") instead.
 
 ## Commands
 
-Flutter is installed via snap and may not be on PATH — prefix when needed:
+Flutter is installed via snap and may not be on PATH - prefix when needed:
 `export PATH="$PATH:/snap/bin"`.
 
 | Task | Command |
@@ -27,7 +30,7 @@ Flutter is installed via snap and may not be on PATH — prefix when needed:
 | Test | `flutter test` |
 | Build for deploy | handled by `.github/workflows/deploy.yml` |
 
-Gotchas: open the app via **`127.0.0.1`** (not `localhost`) — the dev server binds
+Gotchas: open the app via **`127.0.0.1`** (not `localhost`) - the dev server binds
 IPv4 and Firefox may resolve `localhost` to IPv6. If a browser "can't connect,"
 also check Firefox **HTTPS-Only Mode** is off.
 
@@ -38,30 +41,30 @@ also check Firefox **HTTPS-Only Mode** is off.
 - Frontmatter: `title`, `order`. A folder may hold a `_section.md` (frontmatter
   only) to set its title/order.
 - **Always run `dart run tool/gen_content.dart`** after adding/renaming/moving
-  content — it regenerates `assets/manifest.json` and the managed asset list in
+  content - it regenerates `assets/manifest.json` and the managed asset list in
   `pubspec.yaml`.
 
-## Visualizers — the rules
+## Visualizers - the rules
 
 Visualizers are fenced ```` ```viz ```` blocks (YAML) in a page, dispatched by
 `type` through `VizRegistry`. **A visualizer is a full-page-scale experience, not
-a small inline box** — give it generous space and prefer a focused/full-width
+a small inline box** - give it generous space and prefer a focused/full-width
 presentation.
 
 > **ALWAYS build native (Flutter) visualizers via the `algo-visualizer` skill.**
 > Whenever asked to create/generate/add a visualizer for any algorithm or data
-> structure, **invoke the `algo-visualizer` skill first** and follow its recipe —
+> structure, **invoke the `algo-visualizer` skill first** and follow its recipe -
 > do not hand-write the recorder/view from scratch. The skill enforces the rules
 > below (deterministic step recorder, reuse of the shared component library, new
 > structure primitive only when the data structure is genuinely new).
 
 Two families:
 
-### 1. Native (Flutter) visualizers — MUST reuse components
+### 1. Native (Flutter) visualizers - MUST reuse components
 For algorithm/data-structure pages. Build these from the **shared reusable
 component library** (see ARCHITECTURE.md → "Native visualizer standard"). Do **not**
 hand-roll a bespoke layout per algorithm. A new algorithm =
-1. write a **step recorder** (deterministic; one pseudocode line per step — never a
+1. write a **step recorder** (deterministic; one pseudocode line per step - never a
    live state machine, to avoid double-firing), then
 2. **compose the existing panels** (pseudocode, variables, comparison badge,
    progress, event log, result banner, controls, legend, structure visual).
@@ -75,16 +78,40 @@ on desktop, 1-column on narrow. Adapt to the app's light/dark theme; keep state
 colors semantic and consistent (in-scope, processing, discarded/visited,
 found/result).
 
-### 2. HTML visualizers — author-controlled, full-page
+### 2. HTML visualizers - author-controlled, full-page
 `type: html` embeds an author-written single HTML file (inline CSS/JS, no
 frameworks) in a sandboxed iframe. **We do not control its internals** and must
-**assume it is a full-page visualizer** — render it large / full-width, not a small
+**assume it is a full-page visualizer** - render it large / full-width, not a small
 box. The `.html` lives next to its page.
+
+## "Other Problems" grab-bag pages
+
+A section can hold an `other-problems.md` page (see
+`content/ds-algo/greedy/other-problems.md`) for problems that don't (yet) warrant
+their own page. Format:
+
+- Frontmatter `title: Other Problems`, an intro line, then an **At a Glance**
+  section: a markdown table `| # | Problem | Complexity | Key Point |` with one
+  row per problem. `Problem` links to the problem's `##` heading anchor
+  (`#<num>-<slug>`). `Key Point` mirrors that problem's `gotcha` line verbatim (or
+  its gist if there's no gotcha) - this table is the map, so every row must match
+  what's in the problem's own glance card below.
+- A `---` divider, then one `##` section per problem: `## <num>. <Title>`,
+  a short problem statement with an example block (`>` blockquote), the
+  **first** `viz` block as `type: approach` (per "Glance card first" above -
+  `technique`/`pattern`/`idea`/`bullets`/`gotcha`/`complexity`), then `### The
+  trick` (prose walkthrough) and `### Edge cases & gotchas` (bullets).
+- Pick `pattern` to match the actual technique, not just the section's theme -
+  e.g. don't reuse `interval` for a running-sum problem just because the page
+  lives under `intervals`/`greedy`. See `reference/components.md` for the
+  schematic list; add a new one if none fit.
+- When a problem outgrows the grab-bag (interactive step-through, own
+  visualizer), promote it to its own page and drop its row + section here.
 
 ## Extending
 
 - **New algorithm visualizer:** **always use the `algo-visualizer` skill**
-  (`.claude/skills/algo-visualizer/`) — it is the required path, not optional.
+  (`.claude/skills/algo-visualizer/`) - it is the required path, not optional.
   Invoke it whenever asked to build a visualizer for an algorithm; it automates
   the whole recipe end-to-end (step recorder in `lib/viz/renderers/<algo>/`,
   registering a `type` in `lib/viz/init.dart`, composing the reusable panels).

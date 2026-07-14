@@ -1,7 +1,7 @@
 import '../viz/frame.dart';
 
 /// Bubble sort, instrumented to record a frame at each comparison and swap.
-/// The real algorithm logic is untouched — `frames.add(...)` is the only
+/// The real algorithm logic is untouched - `frames.add(...)` is the only
 /// addition, and it is what drives the animation.
 List<ArrayFrame> bubbleSort(List<num> input) {
   final a = List<num>.from(input);

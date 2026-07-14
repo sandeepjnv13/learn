@@ -16,7 +16,7 @@ idea: Walk the array comparing each pair of neighbours; swap the pair when the l
 bullets:
   - Inner loop compares a[j] with a[j+1] and swaps if a[j] > a[j+1].
   - After pass i the last i elements are already sorted, so the inner loop can stop earlier each time.
-  - If a whole pass makes no swaps, the array is already sorted — stop early.
+  - If a whole pass makes no swaps, the array is already sorted - stop early.
 gotcha: Without the "no swaps → stop" flag you always pay O(n²), even on already-sorted input where an early exit gives O(n).
 complexity: O(n²) avg/worst · O(n) best · O(1) space · stable
 ```
@@ -24,7 +24,7 @@ complexity: O(n²) avg/worst · O(n) best · O(1) space · stable
 ## The trick
 
 The only operation is a swap of two **neighbours**, so a large value can only move
-one position per comparison — but across a full pass the biggest unsorted value gets
+one position per comparison - but across a full pass the biggest unsorted value gets
 carried all the way to the end. Repeat, shrinking the unsorted prefix by one each
 time, and the array sorts itself. It's the simplest correct sort, useful mainly as a
 mental model, not for real workloads.

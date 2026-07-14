@@ -9,10 +9,10 @@ library;
 /// always either going **down** into a subtree, hitting a **base case**,
 /// **combining** children's results, or handing a value back **up**.
 enum RecursionPhase {
-  /// Descending — a new recursive call is about to run (a frame is pushed).
+  /// Descending - a new recursive call is about to run (a frame is pushed).
   descend,
 
-  /// A base case fired — this call returns immediately without recursing.
+  /// A base case fired - this call returns immediately without recursing.
   base,
 
   /// Combining the resolved results of child calls in the current frame.
@@ -24,7 +24,7 @@ enum RecursionPhase {
 
 /// A local variable inside a recursion frame (e.g. `leftLca`), shown in the
 /// call-stack card. Until the child call that fills it returns, it is
-/// [resolved] == false and rendered as a faded `…` placeholder — so you can
+/// [resolved] == false and rendered as a faded `…` placeholder - so you can
 /// literally see which sub-result the frame is still waiting on.
 class FrameLocal {
   final String name;
@@ -35,7 +35,7 @@ class FrameLocal {
 }
 
 /// One stack frame in a call-stack render. Display-only: a [signature] label
-/// (e.g. `lca(5)`), its [locals], and — once known — the [returns] value.
+/// (e.g. `lca(5)`), its [locals], and - once known - the [returns] value.
 /// [refId] optionally links the frame to a node in a structure primitive so a
 /// view can light up the matching node / spine.
 class RecursionFrame {

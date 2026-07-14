@@ -59,7 +59,7 @@ class _DeleteMiddleNodeViewState extends State<DeleteMiddleNodeView> {
 
   num _toNum(dynamic v) => v is num ? v : num.tryParse('$v'.trim()) ?? 0;
 
-  // Preset examples — odd vs even middle (which of the two middles?), plus the
+  // Preset examples - odd vs even middle (which of the two middles?), plus the
   // two-node and single-node boundaries people forget (single → empty list).
   static const List<(VizPreset, List<num>)> _presets = [
     (
@@ -68,7 +68,7 @@ class _DeleteMiddleNodeViewState extends State<DeleteMiddleNodeView> {
     ),
     (
       VizPreset('Even length',
-          detail: 'two middles — the second (index n÷2) is deleted',
+          detail: 'two middles - the second (index n÷2) is deleted',
           edgeCase: true),
       [1, 2, 3, 4, 5, 6],
     ),
@@ -212,7 +212,7 @@ class _DeleteMiddleNodeViewState extends State<DeleteMiddleNodeView> {
       return (
         kind: ResultKind.success,
         msg: _list.length <= 1
-            ? 'List had ${_list.length} node — deleting the middle empties it → returned null.'
+            ? 'List had ${_list.length} node - deleting the middle empties it → returned null.'
             : 'Returned null.',
       );
     }
@@ -240,7 +240,7 @@ class _DeleteMiddleNodeViewState extends State<DeleteMiddleNodeView> {
     return VizScaffold(
       title: 'Delete the Middle Node',
       subtitle:
-          'LeetCode 2095 — slow/fast pointers find the middle; prev unlinks it.',
+          'LeetCode 2095 - slow/fast pointers find the middle; prev unlinks it.',
       controlBar: ControlBar(
         playing: _playing,
         atStart: _atStart,

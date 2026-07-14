@@ -1,6 +1,6 @@
 # Learn
 
-A personal, interactive knowledge base — Flutter web app where content is plain
+A personal, interactive knowledge base - Flutter web app where content is plain
 markdown and any page can host a live visualizer. Covers DS & Algo, Databases,
 System Design, Low-Level Design, Languages, and whatever else you add.
 
@@ -33,11 +33,11 @@ flutter run -d chrome            # or: flutter run -d web-server
 
 Two kinds, and both are meant to be **full-page-scale**, not small inline boxes:
 
-- **Native (Flutter)** — rich, step-by-step algorithm visualizers built from a
+- **Native (Flutter)** - rich, step-by-step algorithm visualizers built from a
   **shared reusable component library** (pseudocode panel, variables, comparison
   badge, progress, event log, result banner, controls, legend, structure visual).
   See the standard in [ARCHITECTURE.md](ARCHITECTURE.md#4a-native-flutter--the-standard-).
-- **HTML** — a standalone author-written HTML file embedded in a sandboxed iframe,
+- **HTML** - a standalone author-written HTML file embedded in a sandboxed iframe,
   for hand-crafted visuals we don't otherwise control.
 
 Drop a fenced ```` ```viz ```` block anywhere in a page.

@@ -39,8 +39,8 @@ class TreeNodeSpec {
 /// [tags] (e.g. `p`/`q`) float above nodes and [returnTags] (e.g. `→ 6`) sit
 /// below them.
 ///
-/// When [editable] is true it also renders **in-canvas building affordances** —
-/// a `+` on every empty child slot, a `×` to prune a node, and tap-to-select —
+/// When [editable] is true it also renders **in-canvas building affordances** -
+/// a `+` on every empty child slot, a `×` to prune a node, and tap-to-select -
 /// emitting callbacks so the owning view can mutate the tree. All tree mutation
 /// logic stays in the view; this primitive only renders and reports intent.
 /// Self-fits via [FitToWidth]: a wide tree scales down instead of side-scrolling.

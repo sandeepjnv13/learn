@@ -6,7 +6,7 @@ order: 1
 # 57. Insert Interval
 
 Given non-overlapping intervals (not necessarily sorted) and one **new interval**,
-return the updated list — still non-overlapping and sorted — with the new interval
+return the updated list - still non-overlapping and sorted - with the new interval
 merged into anything it touches.
 
 > `intervals = [[1, 2], [3, 5], [6, 7], [8, 10], [12, 16]]`, `newInterval = [4, 8]`
@@ -30,14 +30,14 @@ complexity: O(n log n) time (O(n) if already sorted) · O(n) space
 
 Carry a single interval `toAdd`, starting as `newInterval`, and let it **grow** as it
 absorbs overlaps. The subtle part is **ordering the checks**. Testing overlap directly
-means the two-part condition `iv.start ≤ toAdd.end && iv.end ≥ toAdd.start` — genuinely
+means the two-part condition `iv.start ≤ toAdd.end && iv.end ≥ toAdd.start` - genuinely
 fiddly at touching endpoints, and easy to get a `<` vs `≤` wrong. Instead check the two
 **non-overlap** cases first, each a single unambiguous comparison:
 
 - fully before: `iv.end < toAdd.start`
 - fully after:  `iv.start > toAdd.end`
 
-If neither holds, the intervals **must** overlap — so "overlap" is just the `else`,
+If neither holds, the intervals **must** overlap - so "overlap" is just the `else`,
 with no boundary reasoning at all.
 
 ```text
@@ -59,9 +59,9 @@ return result
 ## Edge cases & gotchas
 
 - **Order the checks:** non-overlap cases before the overlap `else`. Overlap is never
-  tested directly — it's whatever survives the two rejections.
+  tested directly - it's whatever survives the two rejections.
 - **Strict `<` / `>`** on the non-overlap checks, so touching endpoints (`iv.end ==
-  toAdd.start`) fall through and merge — `[1, 4]` and `[4, 8]` become `[1, 8]`.
+  toAdd.start`) fall through and merge - `[1, 4]` and `[4, 8]` become `[1, 8]`.
 - **Commit `toAdd` once at the end:** the last carried interval is never committed
   inside the loop.
 

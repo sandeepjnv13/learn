@@ -9,12 +9,12 @@ import 'viz_tokens.dart';
 /// Structure primitive: a **horizontal** LIFO stack. Elements are given
 /// **bottom → top** (index 0 is the bottom, the last element is the current
 /// top). Bottom sits on the left, the stack grows to the right, and the single
-/// **top** slot — where *both* a push and a pop happen — is marked with a
+/// **top** slot - where *both* a push and a pop happen - is marked with a
 /// subtle accent band plus a "top • push/pop" tag.
 ///
 /// Presentation adapts to the data:
 /// * **all-numeric** values render as **normalised bars** (height ∝ value,
-///   capped so the stack never grows tall) — ideal for monotonic-stack problems
+///   capped so the stack never grows tall) - ideal for monotonic-stack problems
 ///   where you want to *see* the increasing/decreasing shape;
 /// * anything else (e.g. bracket characters) renders as labelled **cells**.
 ///
@@ -46,7 +46,7 @@ class StackView extends StatelessWidget {
   final num? barMax;
 
   /// Tightens the horizontal spacing in **bar mode** so a long monotonic stack
-  /// reads as one compact silhouette — the increasing/decreasing pattern is far
+  /// reads as one compact silhouette - the increasing/decreasing pattern is far
   /// easier to see when the bars sit close together. No effect in cell mode.
   final bool compact;
 
@@ -87,7 +87,7 @@ class StackView extends StatelessWidget {
   static const double _bandPad = 5; // horizontal padding of the head band
 
   /// The head band / top tag glide should read as a calm slide, not the springy
-  /// overshoot the elements use — an overshoot makes the marker look jittery.
+  /// overshoot the elements use - an overshoot makes the marker look jittery.
   static const Curve _glide = Curves.easeInOutCubic;
 
   double get _stride => _cellW + _gap;
@@ -186,7 +186,7 @@ class StackView extends StatelessWidget {
                   child: _cell(context, scheme, i),
                 ),
 
-            // Monotonic trend line drawn *on top of* the bars — the "graph"
+            // Monotonic trend line drawn *on top of* the bars - the "graph"
             // that makes the increasing/decreasing shape of the stack explicit.
             if (_barMode && connectTops && n >= 1)
               Positioned.fill(
@@ -359,14 +359,14 @@ class StackView extends StatelessWidget {
 
   Widget _topTag(BuildContext context, ColorScheme scheme,
       {required bool empty}) {
-    // Compact pill sized to its content and centered on the top column — the ⇅
+    // Compact pill sized to its content and centered on the top column - the ⇅
     // icon conveys that push and pop share this end. Tooltip carries the detail
     // so the label stays short enough to sit within the column width.
     final color = scheme.tertiary;
     return Tooltip(
       message: empty
-          ? 'Top of stack — the next push lands here'
-          : 'Top of stack — push and pop both happen here',
+          ? 'Top of stack - the next push lands here'
+          : 'Top of stack - push and pop both happen here',
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
@@ -391,7 +391,7 @@ class StackView extends StatelessWidget {
 }
 
 /// Paints the light polyline + vertex dots that connect the tops of the stack
-/// bars — the monotonic "graph on top of the bar chart". Purely decorative /
+/// bars - the monotonic "graph on top of the bar chart". Purely decorative /
 /// explanatory: it carries no algorithm logic, just the point list the view's
 /// current step produced.
 class _TrendPainter extends CustomPainter {

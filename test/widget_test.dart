@@ -2,10 +2,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:learn/algorithms/sorting.dart';
 import 'package:learn/algorithms/searching.dart';
 import 'package:learn/viz/renderers/insert_interval/insert_interval_algo.dart';
+import 'package:learn/viz/renderers/non_overlapping_intervals/non_overlapping_intervals_algo.dart'
+    as noi;
 import 'package:learn/viz/renderers/delete_middle_node/delete_middle_node_algo.dart';
 import 'package:learn/viz/renderers/lca/lca_algo.dart';
 import 'package:learn/viz/renderers/vertical_order/vertical_order_algo.dart';
 import 'package:learn/viz/renderers/next_greater_element/next_greater_element_algo.dart';
+import 'package:learn/viz/renderers/gas_station/gas_station_algo.dart';
+import 'package:learn/viz/renderers/min_size_subarray/min_size_subarray_algo.dart';
 import 'package:learn/viz/renderers/three_sum/three_sum_algo.dart';
 import 'package:learn/viz/renderers/valid_parentheses/valid_parentheses_algo.dart';
 
@@ -69,6 +73,56 @@ void main() {
       expect(finalResult(steps), [
         [2, 5],
       ]);
+    });
+  });
+
+  group('nonOverlapIntervals recorder', () {
+    test('one overlap removed, touching intervals kept', () {
+      final steps = noi.generateNonOverlapSteps(const [
+        noi.Interval(1, 2),
+        noi.Interval(2, 3),
+        noi.Interval(3, 4),
+        noi.Interval(1, 3),
+      ]);
+      expect(steps.last.status, noi.NonOverlapStatus.done);
+      expect(steps.last.removed, 1);
+      for (final s in steps) {
+        expect(s.line, inInclusiveRange(1, noi.nonOverlapPseudocode.length));
+      }
+    });
+
+    test('nested interval discards the wide outer one', () {
+      final steps = noi.generateNonOverlapSteps(const [
+        noi.Interval(1, 10),
+        noi.Interval(2, 3),
+        noi.Interval(4, 5),
+      ]);
+      expect(steps.last.removed, 1);
+    });
+
+    test('already non-overlapping needs no removals', () {
+      final steps = noi.generateNonOverlapSteps(const [
+        noi.Interval(1, 2),
+        noi.Interval(3, 4),
+        noi.Interval(5, 6),
+      ]);
+      expect(steps.last.removed, 0);
+    });
+
+    test('all identical removes n - 1', () {
+      final steps = noi.generateNonOverlapSteps(const [
+        noi.Interval(1, 5),
+        noi.Interval(1, 5),
+        noi.Interval(1, 5),
+        noi.Interval(1, 5),
+      ]);
+      expect(steps.last.removed, 3);
+    });
+
+    test('empty list needs no removals', () {
+      final steps = noi.generateNonOverlapSteps(const []);
+      expect(steps.last.status, noi.NonOverlapStatus.done);
+      expect(steps.last.removed, 0);
     });
   });
 
@@ -322,6 +376,45 @@ void main() {
     });
   });
 
+  group('gasStation recorder', () {
+    test('finds the feasible start with margin', () {
+      final steps = generateGasStationSteps([1, 2, 3, 4, 5], [3, 4, 5, 1, 2]);
+      expect(steps.last.status, GasStationStatus.found);
+      expect(steps.last.result, 3);
+    });
+
+    test('reports -1 when total cost exceeds total gas', () {
+      final steps = generateGasStationSteps([2, 3, 4], [3, 4, 3]);
+      expect(steps.last.status, GasStationStatus.notFound);
+      expect(steps.last.result, -1);
+    });
+
+    test('single feasible station returns 0', () {
+      final steps = generateGasStationSteps([5], [4]);
+      expect(steps.last.status, GasStationStatus.found);
+      expect(steps.last.result, 0);
+    });
+
+    test('consecutive deficits move startIdx twice before settling', () {
+      final steps =
+          generateGasStationSteps([2, 3, 4, 1, 1], [3, 4, 1, 1, 1]);
+      expect(steps.last.status, GasStationStatus.found);
+      expect(steps.last.result, 2);
+    });
+
+    test('empty input terminates cleanly', () {
+      final steps = generateGasStationSteps([], []);
+      expect(steps.last.status, GasStationStatus.empty);
+    });
+
+    test('every step is a valid pseudocode line and index is monotonic', () {
+      final steps = generateGasStationSteps([1, 2, 3, 4, 5], [3, 4, 5, 1, 2]);
+      for (final s in steps) {
+        expect(s.line, inInclusiveRange(1, gasStationPseudocode.length));
+      }
+    });
+  });
+
   group('threeSum recorder', () {
     List<List<num>> result(List<num> arr) =>
         generateThreeSumSteps(arr).last.triplets;
@@ -359,6 +452,43 @@ void main() {
       expect(steps.last.status, ThreeSumStatus.done);
       for (final s in steps) {
         expect(s.line, inInclusiveRange(1, threeSumPseudocode.length));
+      }
+    });
+  });
+
+  group('minSizeSubarray recorder', () {
+    num? result(List<num> arr, num target) =>
+        generateMinSizeSubarraySteps(arr, target).last.best;
+
+    test('classic example shrinks to length 2', () {
+      // [2,3,1,2,4,3], target 7 → [4,3]
+      expect(result([2, 3, 1, 2, 4, 3], 7), 2);
+    });
+
+    test('no valid window leaves best null → notFound', () {
+      final steps = generateMinSizeSubarraySteps([1, 1, 1, 1], 10);
+      expect(steps.last.status, MssStatus.notFound);
+      expect(steps.last.best, isNull);
+    });
+
+    test('single element already at target', () {
+      expect(result([1, 4, 4], 4), 1);
+    });
+
+    test('whole array is the only valid window', () {
+      expect(result([1, 1, 1, 1, 7], 11), 5);
+    });
+
+    test('empty input terminates cleanly', () {
+      final steps = generateMinSizeSubarraySteps([], 5);
+      expect(steps.last.status, MssStatus.empty);
+    });
+
+    test('every step highlights a valid pseudocode line', () {
+      final steps = generateMinSizeSubarraySteps([2, 3, 1, 2, 4, 3], 7);
+      expect(steps.last.status, MssStatus.found);
+      for (final s in steps) {
+        expect(s.line, inInclusiveRange(1, minSizeSubarrayPseudocode.length));
       }
     });
   });

@@ -12,12 +12,12 @@ import 'lca_algo.dart';
 /// (LeetCode 236), built on the reusable [TreeCanvas] primitive and the shared
 /// recursion kit ([CallStackPanel] + [RecursionPhaseChip]).
 ///
-/// The tree is **built inside the visualizer** — there is no array text box.
+/// The tree is **built inside the visualizer** - there is no array text box.
 /// Edit mode gives you an interactive canvas (`+` to grow a child, `×` to prune,
 /// tap to mark p/q); Run mode steps through the recursion with a live call
 /// stack, so you watch the answer bubble up on the way out of the recursion.
 ///
-/// Config (seed only — everything is editable in the canvas):
+/// Config (seed only - everything is editable in the canvas):
 ///   type: lca
 ///   tree: [3, 5, 1, 6, 2, 0, 8, null, null, 7, 4]   # level-order (LeetCode)
 ///   p: 5
@@ -442,7 +442,7 @@ class _LcaViewState extends State<LcaView> {
     return VizScaffold(
       title: 'Lowest Common Ancestor',
       subtitle:
-          'LeetCode 236 — post-order recursion; watch the answer bubble up the call stack.',
+          'LeetCode 236 - post-order recursion; watch the answer bubble up the call stack.',
       controlBar: ControlBar(
         playing: _playing,
         atStart: _atStart,
@@ -664,7 +664,7 @@ class _LcaViewState extends State<LcaView> {
           const Divider(height: 24),
           Text(
             ready
-                ? 'Ready — press “Visualize LCA”.'
+                ? 'Ready - press “Visualize LCA”.'
                 : 'Set a root, then two distinct nodes as p and q.',
             style: TextStyle(
               fontSize: 12.5,

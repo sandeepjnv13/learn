@@ -27,15 +27,15 @@ content/**.md ──gen_content.dart──▶ assets/manifest.json ──▶ Con
 
 ## 2. Content pipeline ✅
 
-- **`content/`** — folders are sections, `.md` files are pages, unlimited nesting.
+- **`content/`** - folders are sections, `.md` files are pages, unlimited nesting.
   Frontmatter (`title`, `order`); a folder may carry `_section.md` for its own
   title/order.
-- **`tool/gen_content.dart`** — walks `content/`, emits `assets/manifest.json`
+- **`tool/gen_content.dart`** - walks `content/`, emits `assets/manifest.json`
   (the nav tree) and rewrites the managed asset-dir list in `pubspec.yaml` between
   the `# >>> generated content dirs` markers. Run after any content change.
-- **`ContentService`** (`lib/services/`) — loads the manifest and individual pages
+- **`ContentService`** (`lib/services/`) - loads the manifest and individual pages
   (splitting frontmatter from body) from bundled assets.
-- **`router.dart`** — builds one `GoRoute` per page from the manifest, all under a
+- **`router.dart`** - builds one `GoRoute` per page from the manifest, all under a
   `ShellRoute` (`AppShell`). Clean URLs via `usePathUrlStrategy()`; GitHub Pages
   gets a `404.html` copy of `index.html` for deep-link fallback.
 
@@ -50,10 +50,10 @@ content/**.md ──gen_content.dart──▶ assets/manifest.json ──▶ Con
 
 ## 4. Visualizer families
 
-### 4a. Native (Flutter) — the standard 📐
+### 4a. Native (Flutter) - the standard 📐
 
 Native visualizers are the heart of this project. **They are full-page-scale,
-reusable-component-based, step-by-step experiences** — never a bespoke one-off
+reusable-component-based, step-by-step experiences** - never a bespoke one-off
 layout per algorithm, never a cramped inline box.
 
 **Determinism via recorders (not live state machines).**
@@ -64,23 +64,23 @@ double-fire. Example already written: `lib/viz/renderers/binary_search/
 binary_search_algo.dart` (🚧) producing `BsStep`s + the pseudocode.
 
 **Required anatomy of an algorithm visualizer:**
-1. **Structure visual** — array boxes / graph nodes+edges / tree, with pointer &
+1. **Structure visual** - array boxes / graph nodes+edges / tree, with pointer &
    index labels (low/mid/high, current node, i/j) that move as state changes, and a
    **legend**. State colors are semantic and consistent: active/in-scope,
    currently-processing, discarded/visited, found/result.
-2. **Pseudocode panel** — full pseudocode with the **current line highlighted**, in
+2. **Pseudocode panel** - full pseudocode with the **current line highlighted**, in
    sync with each step.
-3. **Variables panel** — live key variables, each with a **pulse/flash** when its
+3. **Variables panel** - live key variables, each with a **pulse/flash** when its
    value changes.
-4. **Comparison/decision badge** — the specific comparison just made
+4. **Comparison/decision badge** - the specific comparison just made
    (e.g. `arr[mid] < target → search right`).
-5. **Progress indicator** — shrinking search space / nodes visited, plus a **step
+5. **Progress indicator** - shrinking search space / nodes visited, plus a **step
    counter**.
-6. **Event log** — scrolling plain-English trace of every step.
-7. **Result banner** — success/failure/completion, visually distinct from the log.
-8. **Controls** — Start / Step / Auto Play / Reset, plus editable input in a top bar.
+6. **Event log** - scrolling plain-English trace of every step.
+7. **Result banner** - success/failure/completion, visually distinct from the log.
+8. **Controls** - Start / Step / Auto Play / Reset, plus editable input in a top bar.
 
-**Reusable component library** ✅ (`lib/viz/components/`) — built and
+**Reusable component library** ✅ (`lib/viz/components/`) - built and
 **composed** in every algorithm visualizer. Barrel export: `components.dart`.
 Design tokens (semantic `VizState` colors, spring curve, geometry) live in
 `viz_tokens.dart`. Panels: `Panel` (the white card shell), `ControlBar`,
@@ -97,14 +97,14 @@ for a genuinely new data structure.
 > first-generation, simpler renderers. They are being superseded by the component
 > library above; refactor shared parts out of them rather than duplicating.
 
-**Design language:** material light feel — soft elevation shadows, rounded corners
+**Design language:** material light feel - soft elevation shadows, rounded corners
 10–14px, neutral background, white cards per panel. Fluid animation: spring easing
 `Cubic(0.34, 1.56, 0.64, 1.0)` on box/node transitions, subtle pulse on variable
 updates, smooth width transition on progress bars. Layout: 2-column grid on desktop
 (e.g. pseudocode + variables side by side) collapsing to 1 column on narrow screens.
 Respect the app's light/dark theme for panels; keep state colors semantic.
 
-### 4b. HTML — author-controlled, full-page ✅
+### 4b. HTML - author-controlled, full-page ✅
 
 `type: html` embeds a standalone HTML file (inline CSS/JS, no frameworks) authored
 by the user, sitting next to its page. Rendered in a **sandboxed iframe**
@@ -112,7 +112,7 @@ by the user, sitting next to its page. Rendered in a **sandboxed iframe**
 analysis stays clean; local files use `srcdoc`, URLs use `src`).
 
 We **do not control its internals**, and we **assume it is a full-page visualizer**
-— so it must be rendered large / full-width, not a small box. (Height is
+- so it must be rendered large / full-width, not a small box. (Height is
 configurable today; the direction is full-viewport / a launch-to-fullscreen
 affordance.)
 

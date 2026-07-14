@@ -10,13 +10,13 @@ extension RecursionPhaseView on RecursionPhase {
   String get label {
     switch (this) {
       case RecursionPhase.descend:
-        return 'DESCEND — go into a subtree';
+        return 'DESCEND - go into a subtree';
       case RecursionPhase.base:
-        return 'BASE CASE — return without recursing';
+        return 'BASE CASE - return without recursing';
       case RecursionPhase.combine:
-        return 'COMBINE — merge the children’s results';
+        return 'COMBINE - merge the children’s results';
       case RecursionPhase.returnUp:
-        return 'RETURN — hand the answer up to the caller';
+        return 'RETURN - hand the answer up to the caller';
     }
   }
 
@@ -35,7 +35,7 @@ extension RecursionPhaseView on RecursionPhase {
 }
 
 /// A prominent pill announcing the current [RecursionPhase]. The single most
-/// important cue for "are we going down or coming back up" — the thing that
+/// important cue for "are we going down or coming back up" - the thing that
 /// makes recursion legible. Reused by every recursion visualizer.
 class RecursionPhaseChip extends StatelessWidget {
   final RecursionPhase phase;
@@ -114,7 +114,7 @@ class RecursionPhaseChip extends StatelessWidget {
 /// newest (currently-executing) frame on top, growing as calls descend and
 /// shrinking as they return. Each card shows the frame's arguments, its locals
 /// (pending vs resolved), and its return value once it returns. Purely a render
-/// of the step's frame snapshot — no algorithm logic lives here.
+/// of the step's frame snapshot - no algorithm logic lives here.
 class CallStackPanel extends StatelessWidget {
   final List<RecursionFrame> frames;
   final String title;

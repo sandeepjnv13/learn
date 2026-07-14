@@ -26,7 +26,7 @@ class LinkedNodePointer {
 ///
 /// Nodes are colored by a semantic [VizState]. Any index in [removed] is
 /// treated as unlinked: it pops out of the chain (drops + fades) and the
-/// surviving neighbours are reconnected with a healed bypass arc — the visual
+/// surviving neighbours are reconnected with a healed bypass arc - the visual
 /// heart of a "delete node" operation. Kept a dumb render of the step's data;
 /// all algorithm logic lives in the recorder.
 class LinkedListView extends StatelessWidget {
@@ -297,7 +297,7 @@ class _ChainPainter extends CustomPainter {
       if (b == a + 1) {
         _straight(canvas, fromX, toX, linkColor);
       } else {
-        // A node was skipped — draw the healed bypass link.
+        // A node was skipped - draw the healed bypass link.
         _arc(canvas, fromX, toX, healColor);
       }
     }
@@ -331,7 +331,7 @@ class _ChainPainter extends CustomPainter {
   void _head(Canvas canvas, Offset tip, Offset dir, Color color) {
     final len = dir.distance;
     if (len == 0) return;
-    // Reverse (backward) unit vector — the barbs fan out around it.
+    // Reverse (backward) unit vector - the barbs fan out around it.
     final bx = -dir.dx / len;
     final by = -dir.dy / len;
     const size = 8.0;

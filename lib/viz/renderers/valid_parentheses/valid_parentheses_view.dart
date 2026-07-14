@@ -9,7 +9,7 @@ import 'valid_parentheses_algo.dart';
 
 /// Full-page Valid Parentheses visualizer composed from the shared component
 /// library and driven by the deterministic [generateValidParenthesesSteps]
-/// recorder. Uses a **vertical** [StackView] — the textbook LIFO picture that
+/// recorder. Uses a **vertical** [StackView] - the textbook LIFO picture that
 /// makes "the most recent opener must close first" obvious.
 ///
 /// Config:
@@ -56,7 +56,7 @@ class _VpViewState extends State<ValidParenthesesView> {
     return '([{}])';
   }
 
-  // Preset examples — the classic valids plus the three ways a string with the
+  // Preset examples - the classic valids plus the three ways a string with the
   // right *count* of brackets is still invalid (wrong nesting, leftover opener,
   // closer before any opener).
   static const List<(VizPreset, String)> _presets = [
@@ -194,9 +194,9 @@ class _VpViewState extends State<ValidParenthesesView> {
   ({ResultKind? kind, String? msg}) _result() {
     switch (_step.status) {
       case VpStatus.valid:
-        return (kind: ResultKind.success, msg: 'Valid — every bracket is balanced.');
+        return (kind: ResultKind.success, msg: 'Valid - every bracket is balanced.');
       case VpStatus.invalid:
-        return (kind: ResultKind.failure, msg: 'Not valid — brackets are unbalanced.');
+        return (kind: ResultKind.failure, msg: 'Not valid - brackets are unbalanced.');
       case VpStatus.running:
         return (kind: null, msg: null);
     }
@@ -347,7 +347,7 @@ class _VpViewState extends State<ValidParenthesesView> {
   }
 }
 
-/// Read-only strip of the input bracket characters with a gliding cursor — a
+/// Read-only strip of the input bracket characters with a gliding cursor - a
 /// lightweight input display (not a structure primitive). Self-fits the width.
 class _CharStrip extends StatelessWidget {
   final List<String> chars;

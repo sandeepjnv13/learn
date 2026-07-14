@@ -2,7 +2,7 @@
 ///
 /// Rather than run a live state machine (which risks double-firing on a click),
 /// we execute the whole algorithm up front and record ONE [BsStep] per
-/// pseudocode line executed. Stepping is then just moving an index — always
+/// pseudocode line executed. Stepping is then just moving an index - always
 /// predictable.
 library;
 
@@ -58,7 +58,7 @@ List<BsStep> generateBinarySearchSteps(List<num> rawArray, num target) {
   if (n == 0) {
     steps.add(BsStep(
       line: 11,
-      log: 'Array is empty — $target not found.',
+      log: 'Array is empty - $target not found.',
       status: BsStatus.notFound,
     ));
     return steps;

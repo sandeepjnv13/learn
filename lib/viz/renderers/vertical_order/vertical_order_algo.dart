@@ -9,7 +9,7 @@
 ///      `(col, row, val)` and groups them column by column into the answer.
 ///
 /// Like every recorder in this kit we run the real algorithm once, up front,
-/// and record ONE step per pseudocode line executed — so stepping the UI is
+/// and record ONE step per pseudocode line executed - so stepping the UI is
 /// pure index movement and can never double-fire. During the DFS half each step
 /// also snapshots the live **call stack** (as shared [RecursionFrame]s) and its
 /// [RecursionPhase]; during the grouping half the stack is empty and
@@ -82,7 +82,7 @@ class VerticalOrderStep {
   /// The `prevCol` loop variable; null means -∞ (before the first column).
   final int? prevCol;
 
-  /// The answer built so far — grouped columns of values.
+  /// The answer built so far - grouped columns of values.
   final List<List<num>> columns;
 
   final String? badge; // the decision just made
@@ -138,7 +138,7 @@ List<VerticalOrderStep> generateVerticalOrderSteps({
       phase: RecursionPhase.base,
       stack: [],
       grouping: true,
-      log: 'The tree is empty — the vertical order traversal is [].',
+      log: 'The tree is empty - the vertical order traversal is [].',
       status: VerticalOrderStatus.done,
     ));
     return steps;
@@ -245,7 +245,7 @@ List<VerticalOrderStep> generateVerticalOrderSteps({
           'Collected ${collected.length} node${collected.length == 1 ? '' : 's'}.',
     );
 
-    // Line 15 — left child.
+    // Line 15 - left child.
     final leftId = left[id];
     if (leftId == null) {
       add(
@@ -253,7 +253,7 @@ List<VerticalOrderStep> generateVerticalOrderSteps({
         phase: RecursionPhase.base,
         current: id,
         badge: 'left child of $v is null → return',
-        log: 'dfs(node.left) of $v is null — nothing to record.',
+        log: 'dfs(node.left) of $v is null - nothing to record.',
       );
     } else {
       add(
@@ -266,7 +266,7 @@ List<VerticalOrderStep> generateVerticalOrderSteps({
       solve(leftId, col - 1, row + 1);
     }
 
-    // Line 16 — right child.
+    // Line 16 - right child.
     final rightId = right[id];
     if (rightId == null) {
       add(
@@ -274,7 +274,7 @@ List<VerticalOrderStep> generateVerticalOrderSteps({
         phase: RecursionPhase.base,
         current: id,
         badge: 'right child of $v is null → return',
-        log: 'dfs(node.right) of $v is null — nothing to record.',
+        log: 'dfs(node.right) of $v is null - nothing to record.',
       );
     } else {
       add(
@@ -287,7 +287,7 @@ List<VerticalOrderStep> generateVerticalOrderSteps({
       solve(rightId, col + 1, row + 1);
     }
 
-    // Return (void) — pop the frame.
+    // Return (void) - pop the frame.
     add(
       line: 16,
       phase: RecursionPhase.returnUp,
@@ -313,7 +313,7 @@ List<VerticalOrderStep> generateVerticalOrderSteps({
     line: 4,
     phase: RecursionPhase.combine,
     grouping: true,
-    log: 'DFS done. Sort the tuples by column, then row, then value — because '
+    log: 'DFS done. Sort the tuples by column, then row, then value - because '
         'each node already sits at its (col, row), the board is now in reading '
         'order: left→right by column, top→bottom by row, ties by value.',
     badge: 'sort by (col, row, val)',
@@ -354,7 +354,7 @@ List<VerticalOrderStep> generateVerticalOrderSteps({
         activeCol: col,
         currentId: id,
         badge: 'col $col ≠ prevCol $prevText → new column',
-        log: 'Column $col differs from prevCol ($prevText) — open a new column.',
+        log: 'Column $col differs from prevCol ($prevText) - open a new column.',
       );
       columns.add(<num>[]);
       prevCol = col;
@@ -376,7 +376,7 @@ List<VerticalOrderStep> generateVerticalOrderSteps({
         activeCol: col,
         currentId: id,
         badge: 'col $col == prevCol → same column',
-        log: 'Column $col equals prevCol — stay in the current column.',
+        log: 'Column $col equals prevCol - stay in the current column.',
       );
     }
 
@@ -399,7 +399,7 @@ List<VerticalOrderStep> generateVerticalOrderSteps({
     phase: RecursionPhase.returnUp,
     grouping: true,
     badge: 'return ${columns.length} column${columns.length == 1 ? '' : 's'}',
-    log: 'Done — the vertical order traversal is '
+    log: 'Done - the vertical order traversal is '
         '${columns.map((c) => c.toList()).toList()}.',
     status: VerticalOrderStatus.done,
   );

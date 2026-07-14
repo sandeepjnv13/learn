@@ -5,6 +5,7 @@ library;
 
 export 'approach_card.dart';
 export 'array_cells.dart';
+export 'baseline_bar_plot.dart';
 export 'call_stack_panel.dart';
 export 'comparison_badge.dart';
 export 'control_bar.dart';

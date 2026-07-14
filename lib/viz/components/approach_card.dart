@@ -7,9 +7,9 @@ import 'viz_tokens.dart';
 /// A **static, non-interactive "glance card"**: the at-a-glance answer to
 /// *"how is this problem solved?"* that sits at the top of a problem page.
 ///
-/// It is deliberately not a stepper — no play/step controls, no editable input.
+/// It is deliberately not a stepper - no play/step controls, no editable input.
 /// It renders the **technique name**, a small **schematic** (a hand-drawn hint
-/// keyed by [pattern] — e.g. a decreasing staircase for a monotonic stack), a
+/// keyed by [pattern] - e.g. a decreasing staircase for a monotonic stack), a
 /// few short **mechanic** bullets, an optional **gotcha**, and the
 /// **complexity**. Glancing at it should point you straight at the right idea.
 ///
@@ -22,13 +22,14 @@ class ApproachCard extends StatelessWidget {
 
   /// Selects the built-in schematic. Known values: `monotonic-stack`, `stack`,
   /// `binary-search`, `two-pointer`, `fast-slow`, `post-order`, `coordinate`,
-  /// `interval`, `adjacent-swap`. Anything else falls back to a generic box.
+  /// `interval`, `adjacent-swap`, `running-sum`, `gas-station`. Anything else
+  /// falls back to a generic box.
   final String pattern;
 
   /// One-line gist under the headline (optional).
   final String? idea;
 
-  /// 2–4 short mechanic lines — the moves that make the technique work.
+  /// 2–4 short mechanic lines - the moves that make the technique work.
   final List<String> bullets;
 
   /// A single highlighted watch-out (optional).
@@ -251,7 +252,7 @@ class ApproachCard extends StatelessWidget {
 }
 
 /// The small vector schematic that heads an [ApproachCard]. A pure, static
-/// drawing keyed by `pattern` — no animation, no state, theme-aware.
+/// drawing keyed by `pattern` - no animation, no state, theme-aware.
 class ApproachSchematic extends StatelessWidget {
   final String pattern;
   const ApproachSchematic({super.key, required this.pattern});
@@ -315,6 +316,10 @@ class _SchematicPainter extends CustomPainter {
         _interval(canvas, r);
       case 'adjacent-swap':
         _adjacentSwap(canvas, r);
+      case 'running-sum':
+        _runningSum(canvas, r);
+      case 'gas-station':
+        _gasStation(canvas, r);
       default:
         _generic(canvas, r);
     }
@@ -405,7 +410,7 @@ class _SchematicPainter extends CustomPainter {
 
   /// Descending staircase of bars + a taller incoming element that pops them.
   void _monotonicStack(Canvas c, Rect r) {
-    _text(c, 'stack — strictly decreasing', Offset(r.left + 4, r.top + 6),
+    _text(c, 'stack - strictly decreasing', Offset(r.left + 4, r.top + 6),
         _muted,
         size: 10.5, align: TextAlign.left);
     final base = r.bottom - 22;
@@ -437,7 +442,7 @@ class _SchematicPainter extends CustomPainter {
     // pop arrow: from the incoming bar back to the shortest tops
     _arrow(c, Offset(inX - 3, base - 30), Offset(topX + bw / 2, base - 26),
         _amber);
-    // The mechanic caption lives in the BOTTOM band — one caption per band, so it
+    // The mechanic caption lives in the BOTTOM band - one caption per band, so it
     // never shares the top band with the title (they overlapped at the ~288px
     // row-mode width). Sits below the "new" label with vertical clearance. See
     // the schematic-label guidance in the skill's components reference.
@@ -476,7 +481,7 @@ class _SchematicPainter extends CustomPainter {
         size: 10, align: TextAlign.left, weight: FontWeight.w600);
     _text(c, 'top', Offset(cx - 8, topY + ch / 2), _primary,
         size: 10, align: TextAlign.right, weight: FontWeight.w700);
-    _text(c, 'LIFO — last opened, first matched',
+    _text(c, 'LIFO - last opened, first matched',
         Offset(r.center.dx, r.bottom + 2), _muted,
         size: 10);
   }
@@ -542,7 +547,7 @@ class _SchematicPainter extends CustomPainter {
         Offset(cx(n - 2) - 12, y + ch + 14), _amber);
     _text(c, 'hi', Offset(cx(n - 2) + 16, y + ch + 14), _amber,
         size: 10, align: TextAlign.left, weight: FontWeight.w700);
-    _text(c, 'sorted — move the pointers inward',
+    _text(c, 'sorted - move the pointers inward',
         Offset(r.center.dx, r.top + 2), _muted,
         size: 10.5);
   }
@@ -715,6 +720,146 @@ class _SchematicPainter extends CustomPainter {
     _text(c, 'each pass bubbles the max to the end',
         Offset(r.center.dx, r.bottom + 2), _muted,
         size: 10);
+  }
+
+  /// Zigzag running sum crossing a dashed target line, with hit markers where
+  /// it lands exactly on target and resets back to zero.
+  void _runningSum(Canvas c, Rect r) {
+    final targetY = r.top + r.height * 0.32;
+    // dashed target line
+    var dx = r.left;
+    while (dx < r.right) {
+      _line(c, Offset(dx, targetY), Offset(dx + 8, targetY), _faint, w: 1.2);
+      dx += 14;
+    }
+    _text(c, 'target', Offset(r.right, targetY - 10), _muted,
+        size: 10, align: TextAlign.right);
+
+    // non-monotonic running-sum path: rises above target, dips back to it,
+    // overshoots again, lands on it once more.
+    final baseY = r.bottom - 10;
+    final xs = [
+      r.left,
+      r.left + r.width * 0.22,
+      r.left + r.width * 0.42,
+      r.left + r.width * 0.64,
+      r.left + r.width * 0.82,
+      r.right,
+    ];
+    final ys = [
+      baseY,
+      targetY - 26,
+      targetY, // first hit - reset
+      targetY - 34,
+      targetY,
+      targetY, // second hit
+    ];
+    final path = Path()..moveTo(xs[0], ys[0]);
+    for (var i = 1; i < xs.length; i++) {
+      path.lineTo(xs[i], ys[i]);
+    }
+    c.drawPath(
+      path,
+      Paint()
+        ..color = _primary
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.8,
+    );
+    // hit markers where the path touches target
+    for (final i in [2, 5]) {
+      c.drawCircle(Offset(xs[i], ys[i]), 4.5, Paint()..color = _amber);
+    }
+    _text(c, 'runningSum == target → reset to 0',
+        Offset(r.center.dx, r.bottom + 6), _amber,
+        size: 10, weight: FontWeight.w600);
+    _text(c, 'sum is not monotonic', Offset(r.left, r.top + 6), _muted,
+        size: 10, align: TextAlign.left);
+  }
+
+  /// Mirrors the visualizer: gas / cost as cell rows, then runningGas plotted
+  /// as signed bars around a zero baseline. Where a bar drops below the line
+  /// the tank is reset and the candidate start jumps to the next station.
+  void _gasStation(Canvas c, Rect r) {
+    // Illustrative data (gas & cost non-negative): one clean dip at station 1.
+    const gas = [4, 1, 2, 5];
+    const cost = [1, 5, 1, 1];
+    const run = [3, -1, 1, 5]; // gas−cost accumulated, reset after the −1
+    const deficit = 1; // station where runningGas goes < 0
+    const start = 2; // station right after the deficit = the answer
+    const n = 4;
+
+    const labelW = 32.0;
+    const gap = 7.0;
+    const cellH = 20.0;
+    const rowGap = 6.0;
+    final gridLeft = r.left + labelW;
+    final cellW = ((r.right - gridLeft) - gap * (n - 1)) / n;
+    double colX(int i) => gridLeft + i * (cellW + gap);
+    double colCenter(int i) => colX(i) + cellW / 2;
+
+    // ── gas / cost cell rows ────────────────────────────────────────────
+    final rows = <(String, List<int>)>[('gas', gas), ('cost', cost)];
+    final rowsTop = r.top + 16;
+    for (var rIdx = 0; rIdx < rows.length; rIdx++) {
+      final (name, vals) = rows[rIdx];
+      final y = rowsTop + rIdx * (cellH + rowGap);
+      _text(c, name, Offset(r.left, y + cellH / 2), _muted,
+          size: 10, align: TextAlign.left);
+      for (var i = 0; i < n; i++) {
+        final rect = Rect.fromLTWH(colX(i), y, cellW, cellH);
+        _rrect(c, rect, scheme.surfaceContainerHighest, border: _faint, rad: 5);
+        _text(c, '${vals[i]}', rect.center, _muted,
+            size: 11, weight: FontWeight.w700, mono: true);
+      }
+    }
+
+    // ── runningGas baseline plot ────────────────────────────────────────
+    final plotTop = rowsTop + 2 * (cellH + rowGap) + 6;
+    final plotBottom = r.bottom - 4;
+    final maxV = run.reduce((a, b) => a > b ? a : b);
+    final minV = run.reduce((a, b) => a < b ? a : b);
+    final range = (maxV - minV) == 0 ? 1 : (maxV - minV);
+    final scale = (plotBottom - plotTop) / range;
+    final zeroY = plotTop + maxV * scale;
+
+    _text(c, 'run', Offset(r.left, zeroY), _muted, size: 10,
+        align: TextAlign.left);
+
+    // dashed zero baseline
+    var dx = gridLeft;
+    while (dx < r.right) {
+      _line(c, Offset(dx, zeroY), Offset(dx + 8, zeroY), _faint, w: 1.2);
+      dx += 14;
+    }
+    _text(c, '0', Offset(gridLeft - 4, zeroY), _muted, size: 9.5,
+        align: TextAlign.right);
+
+    final barW = cellW * 0.62;
+    for (var i = 0; i < n; i++) {
+      final v = run[i];
+      final valY = zeroY - v * scale;
+      final top = v >= 0 ? valY : zeroY;
+      final h = (zeroY - valY).abs().clamp(2.0, double.infinity);
+      Color fill = _primaryFill, border = _primary;
+      if (i == deficit) {
+        fill = _amberFill;
+        border = _amber;
+      } else if (i == start) {
+        fill = _greenFill;
+        border = _green;
+      }
+      _rrect(c, Rect.fromLTWH(colCenter(i) - barW / 2, top, barW, h),
+          fill, border: border, rad: 4);
+    }
+
+    // annotations: reset target = the answer station
+    final startValY = zeroY - run[start] * scale;
+    _text(c, 'start', Offset(colCenter(start), startValY - 8), _green,
+        size: 9.5, weight: FontWeight.w700);
+
+    _text(c, 'runningGas drops below 0 → reset, start at next station',
+        Offset(r.center.dx, r.bottom + 6), _green,
+        size: 10, weight: FontWeight.w600);
   }
 
   void _generic(Canvas c, Rect r) {

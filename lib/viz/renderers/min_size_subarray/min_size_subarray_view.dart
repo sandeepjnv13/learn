@@ -5,33 +5,38 @@ import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../../components/components.dart';
 import '../../registry.dart';
-import 'binary_search_algo.dart';
+import 'min_size_subarray_algo.dart';
 
-/// Rich, full-page binary-search visualizer composed entirely from the shared
-/// component library. Driven by the deterministic [generateBinarySearchSteps]
-/// recorder - stepping is pure index movement over a precomputed list.
+/// Full-page LeetCode 209 (Minimum Size Subarray Sum) visualizer composed
+/// from the shared component library, driven by the deterministic
+/// [generateMinSizeSubarraySteps] recorder.
+///
+/// Reference **sliding-window** two-pointer instance: reuse [ArrayCells] with
+/// a `start`/`i` pointer pair over a growing-then-shrinking `inScope` window -
+/// no new structure primitive needed. Every outer-loop iteration is three
+/// moves: add `nums[i]` to the window, maintain it (shrink from the left
+/// while still valid), then use it as a length candidate.
 ///
 /// Config:
-///   type: binary-search
-///   array: [8, 3, 11, 5, 1, 7, 4]   # unsorted ok - sorted for display
+///   type: min-size-subarray
+///   array: [2, 3, 1, 2, 4, 3]
 ///   target: 7
-///   # or, legacy: input: [8, 3, 11, 5, 1, 7, 4, 7]  (last = target)
-class BinarySearchView extends StatefulWidget {
+class MinSizeSubarrayView extends StatefulWidget {
   final VizContext ctx;
-  const BinarySearchView(this.ctx, {super.key});
+  const MinSizeSubarrayView(this.ctx, {super.key});
 
   static void register() {
-    VizRegistry.register('binary-search', (ctx) => BinarySearchView(ctx));
+    VizRegistry.register('min-size-subarray', (ctx) => MinSizeSubarrayView(ctx));
   }
 
   @override
-  State<BinarySearchView> createState() => _BinarySearchViewState();
+  State<MinSizeSubarrayView> createState() => _MinSizeSubarrayViewState();
 }
 
-class _BinarySearchViewState extends State<BinarySearchView> {
-  late List<num> _array; // sorted, as displayed
+class _MinSizeSubarrayViewState extends State<MinSizeSubarrayView> {
+  late List<num> _array;
   late num _target;
-  late List<BsStep> _steps;
+  late List<MssStep> _steps;
   int _index = 0;
   Timer? _timer;
 
@@ -39,7 +44,7 @@ class _BinarySearchViewState extends State<BinarySearchView> {
   late final TextEditingController _targetCtrl;
 
   bool get _playing => _timer != null;
-  BsStep get _step => _steps[_index];
+  MssStep get _step => _steps[_index];
   bool get _atStart => _index == 0;
   bool get _atEnd => _index == _steps.length - 1;
 
@@ -47,68 +52,53 @@ class _BinarySearchViewState extends State<BinarySearchView> {
   void initState() {
     super.initState();
     final (arr, target) = _parseConfig();
+    _array = arr;
     _target = target;
-    _array = List<num>.from(arr)..sort((a, b) => a.compareTo(b));
     _arrayCtrl = TextEditingController(text: _array.join(', '));
     _targetCtrl = TextEditingController(text: _fmt(_target));
-    _steps = generateBinarySearchSteps(_array, _target);
+    _steps = generateMinSizeSubarraySteps(_array, _target);
   }
 
   (List<num>, num) _parseConfig() {
     final c = widget.ctx.config;
-    if (c['array'] is List) {
-      final arr = (c['array'] as List).map(_toNum).toList();
-      final target = c['target'] is num ? c['target'] as num : _toNum(c['target']);
-      return (arr, target);
-    }
-    // Legacy: input list with the last element as the target.
-    if (c['input'] is List && (c['input'] as List).isNotEmpty) {
-      final input = (c['input'] as List).map(_toNum).toList();
-      final target = input.removeLast();
-      return (input, target);
-    }
-    return ([1, 3, 5, 7, 9, 11], 7);
+    final arr = c['array'] is List
+        ? (c['array'] as List).map(_toNum).toList()
+        : <num>[2, 3, 1, 2, 4, 3];
+    final target = c['target'] is num ? c['target'] as num : _toNum(c['target']);
+    return (arr, c.containsKey('target') ? target : 7);
   }
 
-  num _toNum(dynamic v) =>
-      v is num ? v : num.tryParse('$v'.trim()) ?? 0;
+  num _toNum(dynamic v) => v is num ? v : num.tryParse('$v'.trim()) ?? 0;
 
-  String _fmt(num n) => n is int || n == n.roundToDouble()
-      ? n.toInt().toString()
-      : n.toString();
+  String _fmt(num n) =>
+      n is int || n == n.roundToDouble() ? n.toInt().toString() : n.toString();
 
-  // Preset examples - a hit, plus the boundary/absent cases people get wrong
-  // (target below/above range, exactly at lo/hi, and a single-element array).
+  // Preset examples - the LeetCode example, plus the cases that trip up a
+  // first pass: no valid window at all, a single element exactly at target,
+  // and the whole array being the only valid window.
   static const List<(VizPreset, List<num>, num)> _presets = [
     (
-      VizPreset('Target in the middle', detail: 'a plain successful search'),
-      [1, 3, 5, 7, 9, 11],
+      VizPreset('Classic', detail: 'the LeetCode example - shrinks to length 2'),
+      [2, 3, 1, 2, 4, 3],
       7,
     ),
     (
-      VizPreset('Target absent',
-          detail: 'falls between elements - lo passes hi, not found',
-          edgeCase: true),
-      [1, 3, 5, 7, 9, 11],
-      8,
+      VizPreset('No valid window',
+          detail: 'sum of everything is still below target', edgeCase: true),
+      [1, 1, 1, 1],
+      10,
     ),
     (
-      VizPreset('First element',
-          detail: 'target sits at the low boundary', edgeCase: true),
-      [1, 3, 5, 7, 9, 11],
-      1,
+      VizPreset('Single element hits target',
+          detail: 'one element already ≥ target', edgeCase: true),
+      [1, 4, 4],
+      4,
     ),
     (
-      VizPreset('Last element',
-          detail: 'target sits at the high boundary', edgeCase: true),
-      [1, 3, 5, 7, 9, 11],
+      VizPreset('Whole array is the answer',
+          detail: 'window never shrinks below n', edgeCase: true),
+      [1, 1, 1, 1, 7],
       11,
-    ),
-    (
-      VizPreset('Single element',
-          detail: 'array of one - lo == hi == mid', edgeCase: true),
-      [5],
-      5,
     ),
   ];
 
@@ -169,14 +159,13 @@ class _BinarySearchViewState extends State<BinarySearchView> {
         .where((s) => s.trim().isNotEmpty)
         .map((s) => num.tryParse(s.trim()))
         .whereType<num>()
-        .toList()
-      ..sort((a, b) => a.compareTo(b));
+        .toList();
     final target = num.tryParse(_targetCtrl.text.trim()) ?? _target;
     setState(() {
-      _array = arr.isEmpty ? [target] : arr;
+      _array = arr;
       _target = target;
       _arrayCtrl.text = _array.join(', ');
-      _steps = generateBinarySearchSteps(_array, _target);
+      _steps = generateMinSizeSubarraySteps(_array, _target);
       _index = 0;
     });
   }
@@ -186,30 +175,36 @@ class _BinarySearchViewState extends State<BinarySearchView> {
   Map<int, VizState> _cellStates() {
     final s = _step;
     final states = <int, VizState>{};
-    final started = s.lo != null || s.hi != null;
-    for (var i = 0; i < _array.length; i++) {
-      if (!started) {
-        states[i] = VizState.inactive;
-      } else if (s.lo != null && s.hi != null && (i < s.lo! || i > s.hi!)) {
-        states[i] = VizState.discarded;
+    final i = s.i, start = s.start;
+    for (var k = 0; k < _array.length; k++) {
+      if (i == null || start == null) {
+        states[k] = VizState.inactive;
+      } else if (k > i) {
+        states[k] = VizState.inactive; // not reached yet
+      } else if (k < start) {
+        states[k] = VizState.discarded; // shrunk out of the window
       } else {
-        states[i] = VizState.inScope;
+        states[k] = VizState.inScope; // the live start..i window
       }
     }
-    if (s.mid != null && s.status == BsStatus.searching) {
-      states[s.mid!] = VizState.processing;
+    // Highlight the element being tested for removal during maintain.
+    if ((s.line == 5 || s.line == 6) && start != null) {
+      states[start] = VizState.processing;
     }
-    if (s.foundIndex != null) states[s.foundIndex!] = VizState.found;
+    if (s.status == MssStatus.found) {
+      for (final m in s.matched) {
+        states[m] = VizState.found;
+      }
+    }
     return states;
   }
 
   List<ArrayPointer> _pointers(ColorScheme scheme) {
     final s = _step;
     return [
-      if (s.lo != null) ArrayPointer('lo', s.lo!, color: scheme.primary),
-      if (s.hi != null) ArrayPointer('hi', s.hi!, color: scheme.primary),
-      if (s.mid != null)
-        ArrayPointer('mid', s.mid!,
+      if (s.start != null) ArrayPointer('start', s.start!, color: scheme.primary),
+      if (s.i != null)
+        ArrayPointer('i', s.i!,
             color: scheme.brightness == Brightness.dark
                 ? const Color(0xFFF0B429)
                 : const Color(0xFFB77400)),
@@ -220,20 +215,30 @@ class _BinarySearchViewState extends State<BinarySearchView> {
     final s = _step;
     return [
       VizVar('target', _fmt(_target)),
-      VizVar('lo', s.lo?.toString() ?? '–', changed: s.changed.contains('lo')),
-      VizVar('hi', s.hi?.toString() ?? '–', changed: s.changed.contains('hi')),
-      VizVar('mid', s.mid?.toString() ?? '–',
-          changed: s.changed.contains('mid')),
+      VizVar('start', s.start?.toString() ?? '–',
+          changed: s.changed.contains('start')),
+      VizVar('windowSum', s.windowSum?.toString() ?? '–',
+          changed: s.changed.contains('windowSum')),
+      VizVar('best', s.best?.toString() ?? '∞', changed: s.changed.contains('best')),
     ];
   }
 
   ({ResultKind? kind, String? msg}) _result() {
     final s = _step;
-    if (s.status == BsStatus.found) {
-      return (kind: ResultKind.success, msg: 'Found $_fmtTarget at index ${s.foundIndex}.');
+    if (s.status == MssStatus.found) {
+      return (
+        kind: ResultKind.success,
+        msg: 'Shortest subarray with sum ≥ $_fmtTarget has length ${s.best}.',
+      );
     }
-    if (s.status == BsStatus.notFound) {
-      return (kind: ResultKind.failure, msg: '$_fmtTarget is not in the array.');
+    if (s.status == MssStatus.notFound) {
+      return (
+        kind: ResultKind.failure,
+        msg: 'No subarray sums to at least $_fmtTarget - return 0.',
+      );
+    }
+    if (s.status == MssStatus.empty) {
+      return (kind: ResultKind.failure, msg: 'nums is empty - return 0.');
     }
     return (kind: null, msg: null);
   }
@@ -246,14 +251,15 @@ class _BinarySearchViewState extends State<BinarySearchView> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final result = _result();
-    final searchSpace =
-        (_step.lo != null && _step.hi != null && _step.hi! >= _step.lo!)
-            ? _step.hi! - _step.lo! + 1
-            : 0;
+    final windowLen = (_step.start != null && _step.i != null && _step.i! >= _step.start!)
+        ? _step.i! - _step.start! + 1
+        : 0;
 
     return VizScaffold(
-      title: 'Binary Search',
-      subtitle: 'Halve a sorted range until the target is found.',
+      title: '209. Minimum Size Subarray Sum',
+      subtitle:
+          'Grow the window by adding nums[i], shrink it from the left while '
+          'still valid, then measure it - shortest valid window wins.',
       controlBar: ControlBar(
         playing: _playing,
         atStart: _atStart,
@@ -262,26 +268,24 @@ class _BinarySearchViewState extends State<BinarySearchView> {
         onStepBack: _atStart ? null : () => _goto(_index - 1),
         onStepForward: _atEnd ? null : () => _goto(_index + 1),
         onTogglePlay: _togglePlay,
-        input: _inputs(scheme),
+        input: _inputs(),
       ),
       stage: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Centers when it fits; scales the cells down to fit the width when
-          // the array is long (ArrayCells self-fits - no horizontal scroll).
           ArrayCells(
             values: _array,
             states: _cellStates(),
             pointers: _pointers(scheme),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
           ComparisonBadge(text: _step.badge),
           const SizedBox(height: 16),
           StepProgress(
             step: _index,
             total: _steps.length,
-            caption: 'search space: $searchSpace',
+            caption: 'window length: $windowLen  ·  best: ${_step.best ?? '∞'}',
           ),
           const SizedBox(height: 16),
           Legend(
@@ -291,7 +295,12 @@ class _BinarySearchViewState extends State<BinarySearchView> {
               VizState.discarded,
               VizState.found,
             ],
-            labels: const {VizState.inScope: 'lo..hi (in scope)'},
+            labels: const {
+              VizState.inScope: 'start..i (window)',
+              VizState.processing: 'testing removal',
+              VizState.discarded: 'shrunk out',
+              VizState.found: 'best window',
+            },
           ),
           const SizedBox(height: 16),
           ResultBanner(kind: result.kind, message: result.msg),
@@ -309,7 +318,7 @@ class _BinarySearchViewState extends State<BinarySearchView> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: PseudocodePanel(
-                lines: binarySearchPseudocode,
+                lines: minSizeSubarrayPseudocode,
                 currentLine: _step.line,
                 framed: false,
               ),
@@ -329,7 +338,7 @@ class _BinarySearchViewState extends State<BinarySearchView> {
     );
   }
 
-  Widget _inputs(ColorScheme scheme) {
+  Widget _inputs() {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -343,7 +352,7 @@ class _BinarySearchViewState extends State<BinarySearchView> {
           child: TextField(
             controller: _arrayCtrl,
             style: AppTheme.mono(context, size: 13),
-            decoration: _fieldDecoration('Array (sorted on run)'),
+            decoration: _fieldDecoration('Array'),
             onSubmitted: (_) => _rebuild(),
           ),
         ),

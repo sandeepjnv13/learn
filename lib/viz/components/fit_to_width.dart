@@ -7,14 +7,14 @@ import 'package:flutter/material.dart';
 /// This is the generic answer to "too many inputs make the visualizer
 /// side-scroll": when the natural width exceeds what the stage offers, the
 /// **elements themselves** are scaled to fit the page; only the data visual
-/// resizes — the surrounding panels, controls and step tracker are untouched.
+/// resizes - the surrounding panels, controls and step tracker are untouched.
 /// The visual is never enlarged past its natural size, and it is centered in
 /// the available space when it already fits.
 ///
 /// Callers pass the visual's intrinsic [naturalWidth]/[naturalHeight] (which a
 /// structure primitive always knows from its element geometry) and the
 /// fixed-size [child]. Scaling is width-driven and aspect-preserving, so the
-/// row reserves exactly `naturalHeight * scale` of vertical space — no
+/// row reserves exactly `naturalHeight * scale` of vertical space - no
 /// distortion, no clipping (the inner [FittedBox] keeps `Clip.none` so gliding
 /// pointer lanes and healed arcs that paint outside the box stay visible).
 class FitToWidth extends StatelessWidget {

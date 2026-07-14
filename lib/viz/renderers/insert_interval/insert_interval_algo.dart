@@ -3,7 +3,7 @@
 /// The list of existing intervals is non-overlapping but may be UNSORTED, so we
 /// sort it first, then sweep once carrying a single `toAdd` interval. As with
 /// every visualizer here, we run the whole algorithm up front and record ONE
-/// [InsertIntervalStep] per pseudocode line executed — stepping the UI is then
+/// [InsertIntervalStep] per pseudocode line executed - stepping the UI is then
 /// pure index movement.
 library;
 
@@ -29,7 +29,7 @@ class Interval {
 /// Note the ORDER of the checks inside the loop: the two *non-overlap* cases
 /// (entirely before / entirely after) are tested first, and "overlap" is simply
 /// whatever is left in the `else`. Detecting overlap directly is fiddly and easy
-/// to get wrong at the touching endpoints — ruling out the two disjoint cases is
+/// to get wrong at the touching endpoints - ruling out the two disjoint cases is
 /// the clean way to be certain.
 const List<String> insertIntervalPseudocode = [
   'sort intervals by start', // 1
@@ -125,7 +125,7 @@ List<InsertIntervalStep> generateInsertIntervalSteps(
       status: InsertIntervalStatus.sorting);
 
   // 2: result ← []
-  add(2, log: 'result ← [ ]  (empty — we build the answer as we go).');
+  add(2, log: 'result ← [ ]  (empty - we build the answer as we go).');
 
   // 3: toAdd ← newInterval
   toAdd = newInterval;
@@ -146,7 +146,7 @@ List<InsertIntervalStep> generateInsertIntervalSteps(
         current: i,
         badge: 'iv.end ${_fmt(iv.end)} < toAdd.start ${_fmt(toAdd.start)} → '
             '$before',
-        log: 'Non-overlap check #1 — is $iv entirely BEFORE toAdd $toAdd? '
+        log: 'Non-overlap check #1 - is $iv entirely BEFORE toAdd $toAdd? '
             '$before');
     if (before) {
       // 6: result.add(iv)
@@ -166,7 +166,7 @@ List<InsertIntervalStep> generateInsertIntervalSteps(
         current: i,
         badge: 'iv.start ${_fmt(iv.start)} > toAdd.end ${_fmt(toAdd.end)} → '
             '$after',
-        log: 'Non-overlap check #2 — is $iv entirely AFTER toAdd $toAdd? '
+        log: 'Non-overlap check #2 - is $iv entirely AFTER toAdd $toAdd? '
             '$after');
     if (after) {
       // 8: result.add(toAdd)
@@ -184,7 +184,7 @@ List<InsertIntervalStep> generateInsertIntervalSteps(
       absorbed.add(i);
       add(9,
           current: i,
-          log: 'toAdd ← $iv — this interval now becomes the one we carry '
+          log: 'toAdd ← $iv - this interval now becomes the one we carry '
               'forward.',
           changed: {'toAdd'});
       continue;

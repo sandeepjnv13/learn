@@ -19,7 +19,7 @@ import 'vertical_order_algo.dart';
 /// non-recursive sort-and-group pass that reads the board column by column into
 /// the answer.
 ///
-/// Config (seed only — the tree is editable in the canvas):
+/// Config (seed only - the tree is editable in the canvas):
 ///   type: vertical_order
 ///   tree: [3, 9, 20, null, null, 15, 7]   # level-order (LeetCode)
 class VerticalOrderView extends StatefulWidget {
@@ -413,7 +413,7 @@ class _VerticalOrderViewState extends State<VerticalOrderView> {
     return VizScaffold(
       title: 'Vertical Order Traversal',
       subtitle:
-          'LeetCode 987 — DFS stamps each node with a (col, row); then sort by '
+          'LeetCode 987 - DFS stamps each node with a (col, row); then sort by '
           '(col, row, val) and group column by column.',
       controlBar: ControlBar(
         playing: _playing,
@@ -524,8 +524,8 @@ class _VerticalOrderViewState extends State<VerticalOrderView> {
   Widget _phaseLabel(BuildContext context, VerticalOrderStep s) {
     final scheme = Theme.of(context).colorScheme;
     final (text, color) = s.grouping
-        ? ('Phase 2 — sort & group (non-recursive)', scheme.tertiary)
-        : ('Phase 1 — DFS coordinates (recursive)', scheme.primary);
+        ? ('Phase 2 - sort & group (non-recursive)', scheme.tertiary)
+        : ('Phase 1 - DFS coordinates (recursive)', scheme.primary);
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),

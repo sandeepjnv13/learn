@@ -28,6 +28,11 @@
               "title": "15. 3Sum",
               "route": "/ds-algo/two-pointer/three-sum",
               "asset": "content/ds-algo/two-pointer/three-sum.md"
+            },
+            {
+              "title": "209. Minimum Size Subarray Sum",
+              "route": "/ds-algo/two-pointer/minimum-size-subarray-sum",
+              "asset": "content/ds-algo/two-pointer/minimum-size-subarray-sum.md"
             }
           ]
         },
@@ -50,6 +55,11 @@
               "title": "57. Insert Interval",
               "route": "/ds-algo/intervals/insert-interval",
               "asset": "content/ds-algo/intervals/insert-interval.md"
+            },
+            {
+              "title": "435. Non-overlapping Intervals",
+              "route": "/ds-algo/intervals/non-overlapping-intervals",
+              "asset": "content/ds-algo/intervals/non-overlapping-intervals.md"
             }
           ]
         },
@@ -93,6 +103,22 @@
               "title": "987. Vertical Order Traversal",
               "route": "/ds-algo/trees/vertical-order-traversal",
               "asset": "content/ds-algo/trees/vertical-order-traversal.md"
+            }
+          ]
+        },
+        {
+          "title": "Greedy",
+          "route": "/ds-algo/greedy",
+          "children": [
+            {
+              "title": "Other Problems",
+              "route": "/ds-algo/greedy/other-problems",
+              "asset": "content/ds-algo/greedy/other-problems.md"
+            },
+            {
+              "title": "134. Gas Station",
+              "route": "/ds-algo/greedy/gas-station",
+              "asset": "content/ds-algo/greedy/gas-station.md"
             }
           ]
         }

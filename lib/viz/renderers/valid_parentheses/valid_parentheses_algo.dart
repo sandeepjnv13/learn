@@ -4,7 +4,7 @@
 /// pseudocode line executed. Stepping the UI is then pure index movement.
 ///
 /// Algorithm: scan the string. Push every opening bracket. On a closing
-/// bracket, the stack top must be its matching opener — pop and check. A close
+/// bracket, the stack top must be its matching opener - pop and check. A close
 /// with an empty stack, a mismatched pair, or any leftover openers at the end
 /// all mean the string is invalid.
 library;
@@ -63,7 +63,7 @@ List<VpStep> generateValidParenthesesSteps(String raw) {
     steps.add(VpStep(
       line: 10,
       stack: const [],
-      log: 'Empty string — trivially balanced.',
+      log: 'Empty string - trivially balanced.',
       status: VpStatus.valid,
     ));
     return steps;
@@ -105,7 +105,7 @@ List<VpStep> generateValidParenthesesSteps(String raw) {
       line: 4,
       i: i,
       stack: List<String>.from(stack),
-      log: "'$ch' is a closing bracket — it must match the current top.",
+      log: "'$ch' is a closing bracket - it must match the current top.",
     ));
 
     final empty = stack.isEmpty;
@@ -115,8 +115,8 @@ List<VpStep> generateValidParenthesesSteps(String raw) {
       stack: List<String>.from(stack),
       badge: 'stack is empty? $empty',
       log: empty
-          ? 'Stack is empty — no opener to match this closer.'
-          : 'Stack is not empty — pop the top to compare.',
+          ? 'Stack is empty - no opener to match this closer.'
+          : 'Stack is not empty - pop the top to compare.',
     ));
     if (empty) {
       steps.add(VpStep(

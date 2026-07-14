@@ -24,13 +24,13 @@ class BoardItem {
 }
 
 /// Structure primitive: a 2-D **column board** that places each [BoardItem] at
-/// its integer `(col, row)` coordinate — columns laid left→right by column
+/// its integer `(col, row)` coordinate - columns laid left→right by column
 /// value, rows top→bottom by row value, and items that share a cell laid out
 /// side by side sorted by value. An optional [activeColumn] paints a highlight
 /// band behind one column (e.g. the column being emitted while grouping).
 ///
-/// This is the natural picture for *coordinate-grouping* algorithms — vertical
-/// order traversal, "group by column/diagonal", bucketing by key — where the
+/// This is the natural picture for *coordinate-grouping* algorithms - vertical
+/// order traversal, "group by column/diagonal", bucketing by key - where the
 /// answer is read off the board column by column. Like every primitive it is a
 /// dumb, stateless render of the step's data (no algorithm logic), colors come
 /// from [vizStateColors], motion from [VizTokens], and it **self-fits** via

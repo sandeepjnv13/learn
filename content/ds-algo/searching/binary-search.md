@@ -16,7 +16,7 @@ bullets:
   - If arr[mid] == target → found.
   - If target > arr[mid] → the answer can only be to the right, so lo = mid + 1.
   - If target < arr[mid] → hi = mid - 1. Repeat until lo > hi (not present).
-gotcha: Compute mid as lo + (hi - lo) / 2 to avoid overflow, and always move past mid (mid ± 1) — reusing mid as the new bound loops forever.
+gotcha: Compute mid as lo + (hi - lo) / 2 to avoid overflow, and always move past mid (mid ± 1) - reusing mid as the new bound loops forever.
 complexity: O(log n) time · O(1) space
 ```
 
@@ -35,7 +35,7 @@ range collapses in about `log₂ n` steps.
   `hi = mid` can leave the range unchanged and spin forever.
 - **Overflow:** `lo + (hi - lo) / 2` instead of `(lo + hi) / 2` for large indices.
 
-The visualizer runs the real algorithm and records one step per line of pseudocode —
+The visualizer runs the real algorithm and records one step per line of pseudocode -
 edit the array or target and re-run, or step through manually.
 
 ```viz

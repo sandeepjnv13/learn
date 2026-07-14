@@ -5,7 +5,7 @@ import 'viz_tokens.dart';
 /// The top control bar: Start/Reset, Step back/forward, and Auto-play toggle,
 /// with an optional [input] slot (e.g. array + target fields) on the left.
 ///
-/// Owns no playback state itself — the composing visualizer passes the current
+/// Owns no playback state itself - the composing visualizer passes the current
 /// flags and callbacks.
 class ControlBar extends StatelessWidget {
   final bool playing;

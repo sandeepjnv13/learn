@@ -6,66 +6,70 @@ import 'package:flutter/material.dart' hide Interval;
 import '../../../theme/app_theme.dart';
 import '../../components/components.dart';
 import '../../registry.dart';
-import 'insert_interval_algo.dart';
+import 'non_overlapping_intervals_algo.dart';
 
-/// Full-page "insert interval" visualizer, composed from the shared component
-/// library and driven by the deterministic [generateInsertIntervalSteps]
-/// recorder. Adds a new interval to a list of non-overlapping (but possibly
-/// unsorted) intervals by sorting, then sweeping once with a carried `toAdd`.
+/// Full-page "non-overlapping intervals" visualizer (LeetCode 435), composed
+/// from the shared component library and driven by the deterministic
+/// [generateNonOverlapSteps] recorder. Sorts intervals by start, then sweeps
+/// once keeping a single `active` interval - greedily discarding whichever
+/// overlapping interval has the larger end.
 ///
 /// Config:
-///   type: insert-interval
-///   intervals: [[1, 2], [3, 5], [6, 7], [8, 10], [12, 16]]
-///   newInterval: [4, 8]
-class InsertIntervalView extends StatefulWidget {
+///   type: non-overlapping-intervals
+///   intervals: [[1, 2], [2, 3], [3, 4], [1, 3]]
+class NonOverlappingIntervalsView extends StatefulWidget {
   final VizContext ctx;
-  const InsertIntervalView(this.ctx, {super.key});
+  const NonOverlappingIntervalsView(this.ctx, {super.key});
 
   static void register() {
-    VizRegistry.register('insert-interval', (ctx) => InsertIntervalView(ctx));
+    VizRegistry.register(
+        'non-overlapping-intervals', (ctx) => NonOverlappingIntervalsView(ctx));
   }
 
   @override
-  State<InsertIntervalView> createState() => _InsertIntervalViewState();
+  State<NonOverlappingIntervalsView> createState() =>
+      _NonOverlappingIntervalsViewState();
 }
 
-class _InsertIntervalViewState extends State<InsertIntervalView> {
+class _NonOverlappingIntervalsViewState
+    extends State<NonOverlappingIntervalsView> {
   late List<Interval> _intervals; // sorted, as displayed
-  late Interval _newInterval;
-  late List<InsertIntervalStep> _steps;
+  late List<NonOverlapStep> _steps;
   late num _domainMin;
   late num _domainMax;
   int _index = 0;
   Timer? _timer;
 
   late final TextEditingController _intervalsCtrl;
-  late final TextEditingController _newCtrl;
 
   bool get _playing => _timer != null;
-  InsertIntervalStep get _step => _steps[_index];
+  NonOverlapStep get _step => _steps[_index];
   bool get _atStart => _index == 0;
   bool get _atEnd => _index == _steps.length - 1;
 
   @override
   void initState() {
     super.initState();
-    final (ivs, ni) = _parseConfig();
-    _apply(ivs, ni);
+    final ivs = _parseConfig();
+    _apply(ivs);
     _intervalsCtrl = TextEditingController(text: _fmtList(_intervals));
-    _newCtrl = TextEditingController(text: _fmtIv(_newInterval));
   }
 
-  void _apply(List<Interval> ivs, Interval ni) {
+  void _apply(List<Interval> ivs) {
     _intervals = List<Interval>.from(ivs)
       ..sort((a, b) => a.start.compareTo(b.start));
-    _newInterval = ni;
-    _steps = generateInsertIntervalSteps(_intervals, _newInterval);
+    _steps = generateNonOverlapSteps(_intervals);
     _computeDomain();
     _index = 0;
   }
 
   void _computeDomain() {
-    num lo = _newInterval.start, hi = _newInterval.end;
+    if (_intervals.isEmpty) {
+      _domainMin = 0;
+      _domainMax = 1;
+      return;
+    }
+    num lo = _intervals.first.start, hi = _intervals.first.end;
     for (final iv in _intervals) {
       lo = math.min(lo, iv.start);
       hi = math.max(hi, iv.end);
@@ -75,23 +79,18 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
     _domainMax = hi + pad;
   }
 
-  (List<Interval>, Interval) _parseConfig() {
+  List<Interval> _parseConfig() {
     final c = widget.ctx.config;
     final ivs = _toIntervalList(c['intervals']);
-    final ni = _toInterval(c['newInterval']) ?? const Interval(4, 8);
     if (ivs.isEmpty) {
-      return (
-        const [
-          Interval(1, 2),
-          Interval(3, 5),
-          Interval(6, 7),
-          Interval(8, 10),
-          Interval(12, 16),
-        ],
-        ni,
-      );
+      return const [
+        Interval(1, 2),
+        Interval(2, 3),
+        Interval(3, 4),
+        Interval(1, 3),
+      ];
     }
-    return (ivs, ni);
+    return ivs;
   }
 
   List<Interval> _toIntervalList(dynamic v) {
@@ -108,41 +107,36 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
 
   num _toNum(dynamic v) => v is num ? v : num.tryParse('$v'.trim()) ?? 0;
 
-  // Preset examples - the merge-several case plus the boundaries people miss:
-  // fits in a gap (no merge), inserts before/after everything, empty list, and
-  // a new interval that swallows the whole set.
-  static const List<(VizPreset, List<List<num>>, List<num>)> _presets = [
+  // Preset examples - the worked overlap case, plus the frequently-missed
+  // edge cases: already non-overlapping, touching (not overlapping)
+  // endpoints, fully nested, and everything identical.
+  static const List<(VizPreset, List<List<num>>)> _presets = [
     (
-      VizPreset('Overlaps several',
-          detail: 'new interval merges a run in the middle'),
-      [[1, 2], [3, 5], [6, 7], [8, 10], [12, 16]],
-      [4, 8],
+      VizPreset('One overlap', detail: '[1,3] conflicts - remove it'),
+      [[1, 2], [2, 3], [3, 4], [1, 3]],
     ),
     (
-      VizPreset('Fits in a gap',
-          detail: 'no overlap - inserted whole, nothing merges', edgeCase: true),
-      [[1, 2], [6, 9]],
-      [3, 5],
+      VizPreset('Already non-overlapping',
+          detail: 'sorted and disjoint → 0 removals', edgeCase: true),
+      [[1, 2], [3, 4], [5, 6]],
     ),
     (
-      VizPreset('Insert before all',
-          detail: 'new interval lands at the very start', edgeCase: true),
-      [[3, 5], [8, 10]],
-      [1, 2],
+      VizPreset('Touching endpoints',
+          detail: 'iv.start == active.end does NOT overlap', edgeCase: true),
+      [[1, 2], [2, 3]],
     ),
     (
-      VizPreset('Empty list',
-          detail: 'no existing intervals - result is just the new one',
+      VizPreset('Nested interval',
+          detail: 'wide outer interval has the larger end - it gets removed, '
+              'not the narrow inner one',
           edgeCase: true),
-      [],
-      [5, 7],
+      [[1, 10], [2, 3], [4, 5]],
     ),
     (
-      VizPreset('Swallows everything',
-          detail: 'new interval covers them all → one merged interval',
+      VizPreset('All identical',
+          detail: 'every interval conflicts - keep just 1, remove the rest',
           edgeCase: true),
-      [[2, 3], [5, 7], [8, 10]],
-      [1, 12],
+      [[1, 5], [1, 5], [1, 5], [1, 5]],
     ),
   ];
 
@@ -150,7 +144,6 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
     final p = _presets[i];
     _intervalsCtrl.text =
         p.$2.map((iv) => '[${_fmt(iv[0])}, ${_fmt(iv[1])}]').join(', ');
-    _newCtrl.text = '[${_fmt(p.$3[0])}, ${_fmt(p.$3[1])}]';
     _rebuild();
   }
 
@@ -158,7 +151,6 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
   void dispose() {
     _timer?.cancel();
     _intervalsCtrl.dispose();
-    _newCtrl.dispose();
     super.dispose();
   }
 
@@ -200,19 +192,14 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
   void _rebuild() {
     _stop();
     final ivs = _parseIntervalsField(_intervalsCtrl.text);
-    final ni = _parseIntervalsField(_newCtrl.text);
     setState(() {
-      _apply(
-        ivs,
-        ni.isNotEmpty ? ni.first : _newInterval,
-      );
+      _apply(ivs);
       _intervalsCtrl.text = _fmtList(_intervals);
-      _newCtrl.text = _fmtIv(_newInterval);
     });
   }
 
   /// Parses numbers out of free text and pairs them into intervals, e.g.
-  /// "[1,2],[6,9]" or "1 2 6 9" → [ [1,2], [6,9] ].
+  /// "[1,2],[2,3]" or "1 2 2 3" → [ [1,2], [2,3] ].
   List<Interval> _parseIntervalsField(String text) {
     final nums = RegExp(r'-?\d+(\.\d+)?')
         .allMatches(text)
@@ -229,42 +216,23 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
 
   VizState _sourceState(int i) {
     final s = _step;
-    if (s.committedSources.contains(i)) return VizState.found;
-    if (s.absorbedSources.contains(i)) return VizState.inScope;
+    if (s.discardedSources.contains(i)) return VizState.discarded;
+    if (i == s.activeIndex) return VizState.found;
     if (s.current == i) return VizState.processing;
+    if (s.keptSources.contains(i)) return VizState.inScope;
     return VizState.inactive;
   }
 
-  List<IntervalBar> _workingBars() {
+  List<IntervalBar> _bars() {
     final s = _step;
     return [
-      if (s.toAdd != null)
-        IntervalBar(
-          start: s.toAdd!.start,
-          end: s.toAdd!.end,
-          label: 'toAdd',
-          state: VizState.inScope,
-          isNew: true,
-        ),
       for (var i = 0; i < _intervals.length; i++)
         IntervalBar(
           start: _intervals[i].start,
           end: _intervals[i].end,
           label: 'iv$i',
           state: _sourceState(i),
-        ),
-    ];
-  }
-
-  List<IntervalBar> _resultBars() {
-    final r = _step.result;
-    return [
-      for (var i = 0; i < r.length; i++)
-        IntervalBar(
-          start: r[i].start,
-          end: r[i].end,
-          label: 'r$i',
-          state: VizState.found,
+          isNew: i == s.activeIndex,
         ),
     ];
   }
@@ -272,21 +240,19 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
   List<VizVar> _vars() {
     final s = _step;
     return [
-      VizVar('newInterval', _fmtIv(_newInterval)),
-      VizVar('toAdd', s.toAdd == null ? '–' : _fmtIv(s.toAdd!),
-          changed: s.changed.contains('toAdd')),
+      VizVar('active', s.activeIndex < 0 ? '–' : _fmtIv(s.active),
+          changed: s.changed.contains('active')),
       VizVar('iv', s.current == null ? '–' : _fmtIv(_intervals[s.current!])),
-      VizVar('result', '[${s.result.map(_fmtIv).join(', ')}]',
-          changed: s.changed.contains('result')),
+      VizVar('removed', '${s.removed}', changed: s.changed.contains('removed')),
     ];
   }
 
   ({ResultKind? kind, String? msg}) _result() {
     final s = _step;
-    if (s.status == InsertIntervalStatus.done) {
+    if (s.status == NonOverlapStatus.done) {
       return (
         kind: ResultKind.success,
-        msg: 'Inserted → [${s.result.map(_fmtIv).join(', ')}]',
+        msg: 'Minimum removals = ${s.removed}',
       );
     }
     return (kind: null, msg: null);
@@ -296,15 +262,13 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final result = _result();
-    final merges = _step.absorbedSources.length;
 
     return VizScaffold(
-      title: 'Insert Interval',
+      title: 'Non-overlapping Intervals',
       subtitle:
-          'Sort, then sweep once carrying a single toAdd - non-overlap checks '
-          'first, overlap by elimination.',
+          'Sort by start, then keep one active interval - on conflict, '
+          'discard whichever ends later.',
       controlBar: ControlBar(
         playing: _playing,
         atStart: _atStart,
@@ -317,32 +281,13 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
       ),
       stage: LayoutBuilder(
         builder: (context, c) {
-          final tracks = Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _trackHeading(context, scheme, 'Working set',
-                  'toAdd (carried) + intervals'),
-              const SizedBox(height: 8),
-              IntervalTrack(
-                bars: _workingBars(),
-                domainMin: _domainMin,
-                domainMax: _domainMax,
-              ),
-              const SizedBox(height: 22),
-              _trackHeading(context, scheme, 'result',
-                  'committed intervals'),
-              const SizedBox(height: 8),
-              if (_step.result.isEmpty)
-                _emptyResult(context, scheme)
-              else
-                IntervalTrack(
-                  bars: _resultBars(),
+          final track = _intervals.isEmpty
+              ? _emptyResult(context, Theme.of(context).colorScheme)
+              : IntervalTrack(
+                  bars: _bars(),
                   domainMin: _domainMin,
                   domainMax: _domainMax,
-                ),
-            ],
-          );
+                );
 
           final tail = Column(
             mainAxisSize: MainAxisSize.min,
@@ -353,20 +298,22 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
               StepProgress(
                 step: _index,
                 total: _steps.length,
-                caption: 'merged into toAdd: $merges',
+                caption: 'removed so far: ${_step.removed}',
               ),
               const SizedBox(height: 16),
               Legend(
                 states: const [
-                  VizState.inScope,
-                  VizState.processing,
                   VizState.found,
+                  VizState.processing,
+                  VizState.inScope,
+                  VizState.discarded,
                   VizState.inactive,
                 ],
                 labels: const {
-                  VizState.inScope: 'toAdd / absorbed',
+                  VizState.found: 'active (kept reference)',
                   VizState.processing: 'examining (iv)',
-                  VizState.found: 'committed to result',
+                  VizState.inScope: 'kept',
+                  VizState.discarded: 'removed',
                   VizState.inactive: 'not yet reached',
                 },
               ),
@@ -379,9 +326,7 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: SingleChildScrollView(child: tracks),
-                ),
+                Expanded(child: SingleChildScrollView(child: track)),
                 const SizedBox(height: 16),
                 tail,
               ],
@@ -389,7 +334,7 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
           }
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [tracks, const SizedBox(height: 16), tail],
+            children: [track, const SizedBox(height: 16), tail],
           );
         },
       ),
@@ -405,7 +350,7 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: PseudocodePanel(
-                lines: insertIntervalPseudocode,
+                lines: nonOverlapPseudocode,
                 currentLine: _step.line,
                 framed: false,
               ),
@@ -422,30 +367,6 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _trackHeading(
-    BuildContext context,
-    ColorScheme scheme,
-    String title,
-    String hint,
-  ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        Text(
-          title,
-          style: AppTheme.mono(context, size: 13, color: scheme.onSurface)
-              .copyWith(fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          hint,
-          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-        ),
-      ],
     );
   }
 
@@ -476,21 +397,11 @@ class _InsertIntervalViewState extends State<InsertIntervalView> {
         ),
         const SizedBox(width: 10),
         SizedBox(
-          width: 260,
+          width: 320,
           child: TextField(
             controller: _intervalsCtrl,
             style: AppTheme.mono(context, size: 13),
             decoration: _fieldDecoration('Intervals (sorted on run)'),
-            onSubmitted: (_) => _rebuild(),
-          ),
-        ),
-        const SizedBox(width: 10),
-        SizedBox(
-          width: 120,
-          child: TextField(
-            controller: _newCtrl,
-            style: AppTheme.mono(context, size: 13),
-            decoration: _fieldDecoration('New interval'),
             onSubmitted: (_) => _rebuild(),
           ),
         ),

@@ -11,14 +11,14 @@ import 'three_sum_algo.dart';
 /// library and driven by the deterministic [generateThreeSumSteps] recorder.
 ///
 /// It is the reference **two-pointer** instance: reuse [ArrayCells] (the array/
-/// pointer primitive) with three gliding pointers — a fixed anchor `i` plus a
+/// pointer primitive) with three gliding pointers - a fixed anchor `i` plus a
 /// `lo`/`hi` pair that converges on the sorted remainder. No new structure
 /// primitive is needed; converging pointers are just labelled markers over the
 /// cells, exactly what `ArrayCells` provides.
 ///
 /// Config:
 ///   type: three-sum
-///   array: [-1, 0, 1, 2, -1, -4]   # unsorted ok — sorted for display
+///   array: [-1, 0, 1, 2, -1, -4]   # unsorted ok - sorted for display
 class ThreeSumView extends StatefulWidget {
   final VizContext ctx;
   const ThreeSumView(this.ctx, {super.key});
@@ -62,12 +62,12 @@ class _ThreeSumViewState extends State<ThreeSumView> {
 
   num _toNum(dynamic v) => v is num ? v : num.tryParse('$v'.trim()) ?? 0;
 
-  // Preset examples — a hit, plus the duplicate-handling and empty-result cases
+  // Preset examples - a hit, plus the duplicate-handling and empty-result cases
   // people get wrong (repeated anchors, duplicate pointer values, all-zeros,
   // and an input with no valid triplet).
   static const List<(VizPreset, List<num>)> _presets = [
     (
-      VizPreset('Classic', detail: 'the LeetCode example — two triplets'),
+      VizPreset('Classic', detail: 'the LeetCode example - two triplets'),
       [-1, 0, 1, 2, -1, -4],
     ),
     (
@@ -83,7 +83,7 @@ class _ThreeSumViewState extends State<ThreeSumView> {
     ),
     (
       VizPreset('No triplet',
-          detail: 'all positive — nothing can sum to 0', edgeCase: true),
+          detail: 'all positive - nothing can sum to 0', edgeCase: true),
       [1, 2, 3, 4],
     ),
   ];
@@ -234,7 +234,7 @@ class _ThreeSumViewState extends State<ThreeSumView> {
     return VizScaffold(
       title: '15. 3Sum',
       subtitle:
-          'Sort, then for each anchor slide a lo/hi pair inward — the sum\'s '
+          'Sort, then for each anchor slide a lo/hi pair inward - the sum\'s '
           'sign says which pointer to move, so each step rules one value out.',
       controlBar: ControlBar(
         playing: _playing,
@@ -341,7 +341,7 @@ class _ThreeSumViewState extends State<ThreeSumView> {
         Expanded(
           child: triplets.isEmpty
               ? Text(
-                  '— none yet —',
+                  '- none yet -',
                   style: AppTheme.mono(
                     context,
                     size: 12,

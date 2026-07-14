@@ -59,16 +59,16 @@ class _NgeViewState extends State<NextGreaterElementView> {
 
   num _toNum(dynamic v) => v is num ? v : num.tryParse('$v'.trim()) ?? 0;
 
-  // Preset examples — a spread of shapes plus the strict-vs-equal edge case
+  // Preset examples - a spread of shapes plus the strict-vs-equal edge case
   // most people miss (equal is *not* greater, so it never resolves).
   static const List<(VizPreset, List<num>)> _presets = [
     (
-      VizPreset('Mixed', detail: 'a bit of everything — some resolve, some wait'),
+      VizPreset('Mixed', detail: 'a bit of everything - some resolve, some wait'),
       [2, 1, 2, 4, 3],
     ),
     (
       VizPreset('Strictly increasing',
-          detail: 'each bigger value instantly resolves the one before — stack stays tiny'),
+          detail: 'each bigger value instantly resolves the one before - stack stays tiny'),
       [1, 2, 3, 4, 5],
     ),
     (
@@ -79,13 +79,13 @@ class _NgeViewState extends State<NextGreaterElementView> {
     ),
     (
       VizPreset('All equal',
-          detail: 'equal is NOT greater — every answer stays −1',
+          detail: 'equal is NOT greater - every answer stays −1',
           edgeCase: true),
       [3, 3, 3, 3],
     ),
     (
       VizPreset('Single element',
-          detail: 'one value, no successor — answer is −1', edgeCase: true),
+          detail: 'one value, no successor - answer is −1', edgeCase: true),
       [7],
     ),
   ];

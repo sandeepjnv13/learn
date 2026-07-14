@@ -25,7 +25,7 @@ class VizRegistry {
   static final Map<String, VizBuilder> _builders = {};
 
   /// Types that render as a **static, inline** card (no stepper, no focus/fit
-  /// chrome) — e.g. the `approach` glance card. [VizLauncher] omits its button
+  /// chrome) - e.g. the `approach` glance card. [VizLauncher] omits its button
   /// cluster and full-screen route for these.
   static final Set<String> _static = {};
 

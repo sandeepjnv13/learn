@@ -2,12 +2,12 @@
 ///
 /// We run the real monotonic-stack algorithm once, up front, recording ONE
 /// [NgeStep] per pseudocode line executed. Stepping the UI is then pure index
-/// movement — a click always advances exactly one line.
+/// movement - a click always advances exactly one line.
 ///
 /// Algorithm (O(n)): keep a **strictly decreasing** stack of *indices*. Scan
 /// left→right; when the current value is greater than the value at the stack's
 /// top, those smaller elements have just found their next greater element (the
-/// current one) — pop each and record it. Push the current index. Anything left
+/// current one) - pop each and record it. Push the current index. Anything left
 /// on the stack at the end has no greater element to its right → −1.
 library;
 
@@ -67,7 +67,7 @@ List<NgeStep> generateNgeSteps(List<num> rawArray) {
       line: 7,
       stack: const [],
       nge: const [],
-      log: 'Array is empty — nothing to do.',
+      log: 'Array is empty - nothing to do.',
       status: NgeStatus.done,
     ));
     return steps;
@@ -103,7 +103,7 @@ List<NgeStep> generateNgeSteps(List<num> rawArray) {
             ? 'stack empty → stop popping'
             : '$topStr < arr[$i]=${arr[i]} → $canPop',
         log: stack.isEmpty
-            ? 'Stack is empty — nothing smaller waiting; stop popping.'
+            ? 'Stack is empty - nothing smaller waiting; stop popping.'
             : 'Is top ($topStr) smaller than arr[$i]=${arr[i]}? $canPop',
       ));
       if (!canPop) break;

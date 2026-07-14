@@ -26,6 +26,11 @@ class ArrayCells extends StatelessWidget {
   final Map<int, VizState> states;
   final List<ArrayPointer> pointers;
 
+  /// Whether to draw the `0,1,2…` index caption under each cell. Turn this off
+  /// on stacked rows that share one index axis so the caption appears only once
+  /// (e.g. gas / cost / net rows above a single index ruler).
+  final bool showIndices;
+
   static const double _cellW = 56;
   static const double _gap = 10;
   static const double _laneRowH = 26;
@@ -37,6 +42,7 @@ class ArrayCells extends StatelessWidget {
     required this.values,
     this.states = const {},
     this.pointers = const [],
+    this.showIndices = true,
   });
 
   double get _stride => _cellW + _gap;
@@ -47,8 +53,8 @@ class ArrayCells extends StatelessWidget {
     final laneH = pointers.isEmpty ? 0.0 : pointers.length * _laneRowH;
     final gapAboveCells = pointers.isEmpty ? 0.0 : 6.0;
     final totalW = values.isEmpty ? 0.0 : values.length * _stride - _gap;
-    final totalH =
-        laneH + gapAboveCells + _cellW + _cellGapH + _idxLabelH + 8;
+    final idxH = showIndices ? _cellGapH + _idxLabelH : 0.0;
+    final totalH = laneH + gapAboveCells + _cellW + idxH + 8;
 
     // Scale the cells down to fit the available width instead of overflowing
     // into a horizontal scroll when there are many elements.
@@ -167,15 +173,17 @@ class ArrayCells extends StatelessWidget {
                 .copyWith(fontWeight: FontWeight.w700),
           ),
         ),
-        const SizedBox(height: 6),
-        Text(
-          '$i',
-          style: AppTheme.mono(
-            context,
-            size: 11,
-            color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
+        if (showIndices) ...[
+          const SizedBox(height: 6),
+          Text(
+            '$i',
+            style: AppTheme.mono(
+              context,
+              size: 11,
+              color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

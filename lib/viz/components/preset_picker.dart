@@ -14,7 +14,7 @@ class VizPreset {
   final String label;
 
   /// One-line explanation of what makes this example interesting, e.g.
-  /// `'nothing resolves until the very end — the stack fills up'`.
+  /// `'nothing resolves until the very end - the stack fills up'`.
   final String? detail;
 
   /// When true, badges the item as a frequently-missed edge case.
@@ -27,7 +27,7 @@ class VizPreset {
 /// fields in a [ControlBar]. Selecting an item calls [onSelected] with its
 /// index; the view then loads that preset (usually by writing the input
 /// controllers and re-running the recorder). Editing the loaded values is still
-/// allowed — a preset is a *starting point*, not a lock.
+/// allowed - a preset is a *starting point*, not a lock.
 ///
 /// This is a shared control: **every** step-by-step visualizer with editable
 /// input should offer one (3–4 presets plus the most-missed edge cases).

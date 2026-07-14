@@ -8,7 +8,7 @@ import 'viz_tokens.dart';
 /// On desktop it lays out as **two big panels side by side**: an info column
 /// (pseudocode, variables, and a scrolling [logPanel]) on the left and the
 /// visualization [stage] filling the rest on the right. The row is
-/// height-bounded so the whole experience fits without page scroll — only the
+/// height-bounded so the whole experience fits without page scroll - only the
 /// log scrolls internally.
 ///
 /// On narrow screens everything stacks top-to-bottom in normal document flow.
@@ -17,7 +17,7 @@ class VizScaffold extends StatelessWidget {
   final String? subtitle;
   final Widget controlBar;
 
-  /// The visualization — the main, prominent area.
+  /// The visualization - the main, prominent area.
   final Widget stage;
 
   /// Fixed-height info panels stacked at the top of the left column
@@ -66,7 +66,7 @@ class VizScaffold extends StatelessWidget {
       ],
     );
 
-    // Focus mode: no card chrome or vertical margin — the page host frames it.
+    // Focus mode: no card chrome or vertical margin - the page host frames it.
     if (fullscreen) return body;
 
     return Container(
@@ -110,7 +110,7 @@ class VizScaffold extends StatelessWidget {
   Widget _wide(BuildContext context) {
     final vh = MediaQuery.sizeOf(context).height;
     // Give the stage a comfortable, roomy height. It isn't forced to fit the
-    // viewport exactly — a little page scroll is fine, and the "Fit" button
+    // viewport exactly - a little page scroll is fine, and the "Fit" button
     // scrolls the whole card into view on demand.
     final height = (vh - 260).clamp(480.0, 820.0);
     return SizedBox(height: height, child: _stageRow(context));
@@ -141,7 +141,7 @@ class VizScaffold extends StatelessWidget {
   }
 
   /// The info column (pseudocode/events + variables) is a fixed [infoWidth] on
-  /// smaller screens so the stage — where the actual structure renders — keeps
+  /// smaller screens so the stage - where the actual structure renders - keeps
   /// priority. On bigger screens it grows roughly in proportion to the width so
   /// the two panels don't drown in side padding, but the stage always stays the
   /// larger of the two (info capped at ~42% of the row).

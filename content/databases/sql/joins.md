@@ -20,5 +20,5 @@ FROM users u
 INNER JOIN orders o ON o.user_id = u.id;
 ```
 
-> This page is pure markdown — no visualizer. Content-only pages are totally
+> This page is pure markdown - no visualizer. Content-only pages are totally
 > fine; add a `viz` block whenever a topic benefits from one.

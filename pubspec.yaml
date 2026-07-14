@@ -35,6 +35,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   flutter_markdown_plus: ^1.0.12
+  markdown: ^7.3.0
   yaml: ^3.1.3
   go_router: ^17.3.0
   google_fonts: ^8.1.0
@@ -69,6 +70,7 @@ flutter:
     # >>> generated content dirs (tool/gen_content.dart)
     - content/databases/sql/
     - content/ds-algo/arrays/
+    - content/ds-algo/greedy/
     - content/ds-algo/intervals/
     - content/ds-algo/linked-lists/
     - content/ds-algo/searching/
