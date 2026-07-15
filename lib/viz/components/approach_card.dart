@@ -320,6 +320,8 @@ class _SchematicPainter extends CustomPainter {
         _runningSum(canvas, r);
       case 'gas-station':
         _gasStation(canvas, r);
+      case 'overlapping-subproblems':
+        _overlappingSubproblems(canvas, r);
       default:
         _generic(canvas, r);
     }
@@ -626,6 +628,61 @@ class _SchematicPainter extends CustomPainter {
     _text(c, 'post-order: answers bubble up ↑',
         Offset(r.center.dx, r.bottom + 2), _muted,
         size: 10);
+  }
+
+  /// A recursion tree whose repeated call (amber, twice) is cached the second
+  /// time - the branch under the cached copy is dashed away.
+  void _overlappingSubproblems(Canvas c, Rect r) {
+    _text(c, 'same call, twice', Offset(r.left + 2, r.top + 4), _muted,
+        size: 10, align: TextAlign.left);
+
+    final top = r.top + 26;
+    final levelH = (r.bottom - 10 - top) / 2;
+    const nodeW = 30.0;
+    const nodeH = 17.0;
+
+    final cx = r.center.dx;
+    final root = Offset(cx, top);
+    final l1 = Offset(cx - r.width * 0.21, top + levelH);
+    final r1 = Offset(cx + r.width * 0.21, top + levelH);
+    final g1 = Offset(cx - r.width * 0.33, top + levelH * 2);
+    final g2 = Offset(cx - r.width * 0.09, top + levelH * 2);
+    final g3 = Offset(cx + r.width * 0.13, top + levelH * 2);
+    final g4 = Offset(cx + r.width * 0.33, top + levelH * 2);
+
+    for (final e in [
+      [root, l1],
+      [root, r1],
+      [l1, g1],
+      [l1, g2],
+      [r1, g3],
+      [r1, g4],
+    ]) {
+      _line(c, e[0], e[1], _faint, w: 1.3);
+    }
+
+    void node(Offset o, Color fill, Color border, String s, Color fg) {
+      _rrect(c, Rect.fromCenter(center: o, width: nodeW, height: nodeH), fill,
+          border: border, rad: 5);
+      _text(c, s, o, fg, size: 9, weight: FontWeight.w700, mono: true);
+    }
+
+    final plain = scheme.surfaceContainerHighest;
+    node(root, plain, _faint, '2,2', _muted);
+    node(l1, plain, _faint, '1,2', _muted);
+    node(r1, plain, _faint, '2,1', _muted);
+    node(g1, plain, _faint, '0,2', _muted);
+    // The overlap: (1,1) shows up under both branches.
+    node(g2, _amberFill, _amber, '1,1', _amber);
+    node(g3, _amberFill, _amber, '1,1', _amber);
+    node(g4, plain, _faint, '2,0', _muted);
+
+    // The second copy is answered from the cache - nothing below it is explored.
+    _text(c, 'cached', Offset(g3.dx + nodeW / 2 + 3, g3.dy), _green,
+        size: 8.5, align: TextAlign.left, weight: FontWeight.w700);
+
+    _text(c, 'solve each once, reuse it', Offset(r.center.dx, r.bottom + 2),
+        _green, size: 10);
   }
 
   /// Sparse coordinate board: dots placed by (col,row), grouped by column.

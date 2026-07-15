@@ -29,7 +29,9 @@ composing.
    running-total bars around a zero baseline, e.g. gas-station runningGas),
    `LinkedListView` (singly-linked lists), `TreeCanvas` (binary trees / BSTs),
    `CoordinateBoard` (coordinate-grouping: items placed at `(col, row)`, e.g.
-   vertical order traversal). For **recursive** algorithms
+   vertical order traversal), `StackView` (LIFO stacks), `GridBoard` (dense 2-D
+   matrix, e.g. grid DP / flood fill), `RecursionTree` (n-ary call tree, e.g.
+   overlapping subproblems). For **recursive** algorithms
    also reuse the recursion kit - `CallStackPanel` + `RecursionPhaseChip` (see
    reference/components.md) - rather than inventing a stack view.
 
@@ -58,7 +60,15 @@ Work in `lib/viz/renderers/<algo>/` (snake_case, e.g. `bubble_sort/`,
   → **reuse `StackView`** (horizontal; `values` bottom→top render as bars when
   numeric else cells; `states`, `captions`, `topLabel`, `barMax`; the top
   push/pop slot is auto-marked).
-- Graph, queue, dense matrix/grid → **new primitive needed** (not built yet).
+- Dense 2-D matrix / grid DP (min path sum, edit distance, unique paths, flood
+  fill) → **reuse `GridBoard`** (`rows`, `cols`, `cells` of `GridCellSpec(row,
+  col, value, corner, state, tag, tint)`, `arrows` of `GridArrow` for "where
+  this answer came from", `cellSize`).
+- Recursion / call tree (overlapping subproblems, call expansion, memoization
+  collapse) → **reuse `RecursionTree`** (`nodes` of `CallNodeSpec(id, label,
+  children, tint, returns, cacheHit, badge)`, `rootId`). Note this is the *call*
+  tree; `TreeCanvas` is for a binary tree of *data*.
+- Graph or queue → **new primitive needed** (not built yet).
   Build it per "Adding a new structure primitive" below **before** writing the view.
 
 ### 2. Write the step recorder - `<algo>_algo.dart`
@@ -250,8 +260,8 @@ recorded steps - never let the primitive infer motion on its own.
 ## Adding a new structure primitive
 
 Only when the data structure doesn't exist yet. Already built: `ArrayCells`,
-`LinkedListView`, `TreeCanvas`, `CoordinateBoard`, `StackView` (plus the
-`CallStackPanel` recursion kit).
+`LinkedListView`, `TreeCanvas`, `CoordinateBoard`, `StackView`, `GridBoard`,
+`RecursionTree` (plus the `CallStackPanel` recursion kit).
 Put a new one in `lib/viz/components/<name>.dart` and `export` it from
 `components.dart`. Follow the `ArrayCells` conventions so the kit stays one system:
 
@@ -277,13 +287,18 @@ Put a new one in `lib/viz/components/<name>.dart` and `export` it from
 - Keep it a **dumb, stateless render** of the step's data - no algorithm logic
   inside the primitive.
 
+- **Identity vs semantic color.** `VizState` says what a cell *means now* (in
+  scope, discarded, found). When you instead need "these are the **same** thing"
+  - the same subproblem recurring, the same key in several buckets - use
+  `vizIdentityColors(scheme, index)` and key the index off a stable identity so
+  the colors agree across every visual on the page. Don't invent a local palette.
+
 Primitives still to build as they come up: `GraphCanvas` (nodes + edges,
-directed/weighted - can reuse the recursion kit for DFS), `QueueView` (FIFO cell
-row with a front/back marker - `StackView` covers LIFO), `Grid` (dense 2-D matrix
-cells for DP / flood-fill - distinct from the sparse `CoordinateBoard`).
-(`TreeCanvas`, `LinkedListView`, `CoordinateBoard`, and `StackView` already exist
-- reuse them; extend `TreeCanvas` for heaps.) Build the minimum the current
-algorithm needs; generalize later.
+directed/weighted - can reuse the recursion kit for DFS) and `QueueView` (FIFO
+cell row with a front/back marker - `StackView` covers LIFO).
+(`TreeCanvas`, `LinkedListView`, `CoordinateBoard`, `StackView`, `GridBoard`, and
+`RecursionTree` already exist - reuse them; extend `TreeCanvas` for heaps.) Build
+the minimum the current algorithm needs; generalize later.
 
 ## Checklist before finishing
 

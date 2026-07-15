@@ -121,6 +121,17 @@
               "asset": "content/ds-algo/greedy/gas-station.md"
             }
           ]
+        },
+        {
+          "title": "Dynamic Programming",
+          "route": "/ds-algo/dynamic-programming",
+          "children": [
+            {
+              "title": "Overlapping Subproblems",
+              "route": "/ds-algo/dynamic-programming/overlapping-subproblems",
+              "asset": "content/ds-algo/dynamic-programming/overlapping-subproblems.md"
+            }
+          ]
         }
       ]
     },

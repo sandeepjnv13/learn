@@ -181,7 +181,26 @@ class VizScaffold extends StatelessWidget {
           ),
         ],
       ),
-      child: stage,
+      child: _fittedStage(),
+    );
+  }
+
+  /// Structure primitives self-fit horizontally, but a tall stage (a grid of
+  /// many rows, a deep tree) can still exceed the bounded height the desktop
+  /// layout gives it on a short window. Let it scroll internally rather than
+  /// overflow; when it already fits, the stage still fills and centers exactly
+  /// as before.
+  Widget _fittedStage() {
+    return LayoutBuilder(
+      builder: (context, c) {
+        if (!c.maxHeight.isFinite) return stage;
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: c.maxHeight),
+            child: stage,
+          ),
+        );
+      },
     );
   }
 

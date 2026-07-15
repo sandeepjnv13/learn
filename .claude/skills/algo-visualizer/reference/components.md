@@ -14,6 +14,14 @@ Design tokens & semantic colors live in `viz_tokens.dart` (re-exported):
 `VizStateColors vizStateColors(ColorScheme, VizState)` → `.fill/.border/.foreground`;
 `String vizStateLabel(VizState)`.
 
+**Identity tints** - `VizStateColors vizIdentityColors(ColorScheme, int index)`
+(cycles every `vizIdentityCount` = 6). Use when you need to say *"these are the
+same thing"* (the same subproblem recurring across a recursion tree, the same key
+in several buckets) rather than *"this cell means X right now"* - that's
+`VizState`'s job. Key `index` off a stable identity so every visual on the page
+agrees on which color means what. `GridBoard` and `RecursionTree` both accept a
+`tint` that overrides the semantic fill with these.
+
 Monospace text: `AppTheme.mono(context, size: 13, color: ...)` from
 `lib/theme/app_theme.dart`.
 
@@ -65,6 +73,7 @@ labelled box):
 | `adjacent-swap` | bars with two adjacent highlighted + swap arc | bubble sort, adjacent-compare passes |
 | `running-sum` | zigzag sum crossing a dashed target line, hit markers where it resets | partition-by-sum, subarray-sum-equals-target |
 | `gas-station` | gas / cost cell rows + a runningGas baseline plot (signed bars); the below-zero bar is flagged and the next station marked `start` | gas station, reset-start-on-deficit greedy |
+| `overlapping-subproblems` | small recursion tree with the same call appearing twice (amber), the second marked `cached` | memoization, DP intros, overlapping subproblems |
 
 Need a structure with no matching schematic? Add a new `case` to
 `_SchematicPainter` in `lib/viz/components/approach_card.dart` (theme-aware, drawn
@@ -103,6 +112,9 @@ ApproachCard({
 
 The full-page shell. Desktop = info column (left) | stage (right), height-bounded so
 only the log scrolls; narrow stacks. Fills the viewport automatically in focus mode.
+A stage taller than its bounded height (a deep tree, a many-row grid, a short
+window) scrolls internally rather than overflowing; one that fits still fills and
+centers exactly as before - so a stage needs no scroll handling of its own.
 
 ```dart
 VizScaffold({
@@ -271,8 +283,9 @@ FitToWidth({
   Alignment alignment = Alignment.center,
 })
 ```
-`ArrayCells`, `LinkedListView`, and `TreeCanvas` already use it internally, so
-callers just drop the primitive into the stage - it self-fits.
+Every structure primitive (`ArrayCells`, `LinkedListView`, `TreeCanvas`,
+`CoordinateBoard`, `StackView`, `GridBoard`, `RecursionTree`) already uses it
+internally, so callers just drop the primitive into the stage - it self-fits.
 
 ## Structure primitives - `ArrayCells` / `BaselineBarPlot` / `LinkedListView` / `TreeCanvas`
 
@@ -328,9 +341,10 @@ TreeCanvas({
 ```
 Cells/nodes animate color/scale with the spring curve; `processing`/`found` get
 emphasis. All three **self-fit** via `FitToWidth` - a long input shrinks to fit the
-width rather than scrolling. **Build a new primitive** (see SKILL.md) for graphs,
-stacks/queues, and grids, following the same tokens + `states` + pointer/tag + fit
-conventions.
+width rather than scrolling. Stacks, dense grids, and call trees are covered by
+`StackView` / `GridBoard` / `RecursionTree` below; **build a new primitive** (see
+SKILL.md) for graphs and queues, following the same tokens + `states` +
+pointer/tag + fit conventions.
 
 ## Coordinate board - `CoordinateBoard` / `BoardItem`
 
@@ -390,6 +404,71 @@ Dumb stateless render (no algorithm logic); colors via `vizStateColors`, motion 
 the gliding top tag/band via `VizTokens`. Self-fits via `FitToWidth`. See
 `renderers/valid_parentheses/` (cells) and `renderers/next_greater_element/`
 (bars) for reference instances.
+
+## Dense grid - `GridBoard` / `GridCellSpec` / `GridArrow`
+
+Structure primitive for a **dense 2-D matrix** addressed by `(row, col)` - grid
+DP (min path sum, edit distance, unique paths), flood fill, matrix walks. Every
+slot in a `rows × cols` rectangle is drawn; contrast [`CoordinateBoard`], which
+scatters sparse items at coordinates.
+
+`corner` is the small muted label in a cell's top-left - typically the *input*
+the dp is derived from (`grid[i][j]`), so `dp[i][j]` and its cost read at once.
+`arrows` draw the "where did this answer come from" cue between cell centers.
+
+```dart
+GridCellSpec({ required int row, required int col,
+               String? value,      // big label; null → unfilled '·'
+               String? corner,     // small top-left label (the input cost)
+               VizState state = VizState.inactive,
+               String? tag,        // small pill under the cell ('start', 'end')
+               int? tint })        // identity tint; overrides the state fill
+
+GridArrow(int fromRow, int fromCol, int toRow, int toCol)
+
+GridBoard({
+  required int rows,
+  required int cols,
+  required List<GridCellSpec> cells,
+  List<GridArrow> arrows = const [],
+  bool showIndices = true,   // i/j rulers on the top and left edges
+  double cellSize = 62,      // shrink when the grid is a secondary visual
+})
+```
+Dumb stateless render; colors via `vizStateColors`/`vizIdentityColors`, motion via
+`VizTokens`. Self-fits via `FitToWidth`. See `renderers/min_path_dp/` for the
+reference instance.
+
+## Recursion / call tree - `RecursionTree` / `CallNodeSpec`
+
+Structure primitive for an **n-ary call tree**: the picture of what a recursion
+actually does - overlapping subproblems, call expansion, memoization collapse.
+This is the *call* tree (nodes are calls labelled by signature, any arity);
+`TreeCanvas` is for a binary tree of *data*.
+
+Layout is a leaf sweep - leaves take successive x slots, parents center over
+their children - so subtrees occupy disjoint x ranges and nodes never overlap.
+
+A `cacheHit` node renders as a faded, dashed, childless stub that keeps its
+`tint`: you still see *which* subproblem it was, while it reads as inert. That
+plus `tint` is what makes "the same call, over and over" visible at a glance.
+
+```dart
+CallNodeSpec({ required int id,
+               required String label,        // the signature, e.g. '(2,2)'
+               List<int> children = const [], // in call order
+               int? tint,                    // identity tint - color-match repeats
+               String? returns,              // label under the node ('→ 7')
+               bool cacheHit = false,        // faded dashed stub, no subtree
+               String? badge,                // small pill above ('×6')
+               VizState state = VizState.inactive })
+
+RecursionTree({ required List<CallNodeSpec> nodes, required int? rootId })
+```
+Dumb stateless render; self-fits via `FitToWidth`. See
+`renderers/overlapping_subproblems/` for the reference instance - note its model
+(`overlap_model.dart`) is Flutter-free and *derives* every count it quotes rather
+than hardcoding them.
 
 ## Recursion kit - `CallStackPanel` / `RecursionPhaseChip`
 

@@ -70,6 +70,7 @@ flutter:
     # >>> generated content dirs (tool/gen_content.dart)
     - content/databases/sql/
     - content/ds-algo/arrays/
+    - content/ds-algo/dynamic-programming/
     - content/ds-algo/greedy/
     - content/ds-algo/intervals/
     - content/ds-algo/linked-lists/

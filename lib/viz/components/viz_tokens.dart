@@ -91,6 +91,31 @@ VizStateColors vizStateColors(ColorScheme scheme, VizState state) {
   }
 }
 
+/// Number of distinct identity tints [vizIdentityColors] cycles through.
+const int vizIdentityCount = 6;
+
+/// Tints for **color-matching repeated things** - the same subproblem recurring
+/// across a recursion tree, the same key hit in several buckets.
+///
+/// Deliberately separate from [VizState]: a state says *what a cell means right
+/// now* (in scope, discarded, found), an identity tint says only *"these are the
+/// same thing"* and carries no other meaning. Index by a stable identity (a
+/// cell's ordinal, a key's hash) and it stays consistent across steps; the
+/// palette cycles every [vizIdentityCount] entries.
+VizStateColors vizIdentityColors(ColorScheme scheme, int index) {
+  final dark = scheme.brightness == Brightness.dark;
+  // Six hues that stay distinguishable side by side in both themes.
+  const hues = [265.0, 190.0, 340.0, 25.0, 150.0, 220.0];
+  final h = hues[index % hues.length];
+  final border = HSLColor.fromAHSL(1, h, dark ? 0.62 : 0.58, dark ? 0.68 : 0.42)
+      .toColor();
+  final fill = HSLColor.fromAHSL(1, h, dark ? 0.42 : 0.72, dark ? 0.22 : 0.92)
+      .toColor();
+  final fg = HSLColor.fromAHSL(1, h, dark ? 0.70 : 0.62, dark ? 0.80 : 0.30)
+      .toColor();
+  return VizStateColors(fill, border, fg);
+}
+
 /// Human-readable label for a state, used by legends.
 String vizStateLabel(VizState state) {
   switch (state) {

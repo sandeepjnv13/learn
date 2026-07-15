@@ -6,6 +6,8 @@ import 'package:learn/viz/renderers/non_overlapping_intervals/non_overlapping_in
     as noi;
 import 'package:learn/viz/renderers/delete_middle_node/delete_middle_node_algo.dart';
 import 'package:learn/viz/renderers/lca/lca_algo.dart';
+import 'package:learn/viz/renderers/min_path_dp/min_path_dp_algo.dart';
+import 'package:learn/viz/renderers/overlapping_subproblems/overlap_model.dart';
 import 'package:learn/viz/renderers/vertical_order/vertical_order_algo.dart';
 import 'package:learn/viz/renderers/next_greater_element/next_greater_element_algo.dart';
 import 'package:learn/viz/renderers/gas_station/gas_station_algo.dart';
@@ -521,6 +523,173 @@ void main() {
       for (final s in generateValidParenthesesSteps('([{}])')) {
         expect(s.line, inInclusiveRange(1, validParenthesesPseudocode.length));
       }
+    });
+  });
+
+  group('overlapping subproblems model', () {
+    const grid = [
+      [1, 3, 1],
+      [1, 5, 1],
+      [4, 2, 1],
+    ];
+
+    test('naive recursion expands 19 calls for 9 distinct cells', () {
+      final tree = buildNaiveTree(grid);
+      expect(tree.nodeCount, 19);
+      expect(tree.cellCounts.length, 9);
+      expect(tree.cacheHitCount, 0);
+      expect(tree.answer, 7);
+    });
+
+    test('naiveNodeCount agrees with the expanded tree', () {
+      expect(naiveNodeCount(grid), buildNaiveTree(grid).nodeCount);
+      // A wider grid: still the 1 + up + left recurrence.
+      const wide = [
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+      ];
+      expect(naiveNodeCount(wide), buildNaiveTree(wide).nodeCount);
+    });
+
+    test('repeated cells carry the expected counts', () {
+      final counts = buildNaiveTree(grid).cellCounts;
+      expect(counts['0,0'], 6);
+      expect(counts['0,1'], 3);
+      expect(counts['1,0'], 3);
+      expect(counts['1,1'], 2);
+      // Everything else is reached exactly once.
+      final repeated = counts.entries.where((e) => e.value > 1).map((e) => e.key);
+      expect(repeated.toSet(), {'0,0', '0,1', '1,0', '1,1'});
+    });
+
+    test('memoizing collapses 19 nodes to 9 computes + 4 cache hits', () {
+      final tree = buildMemoTree(grid);
+      expect(tree.computeCount, 9);
+      expect(tree.cacheHitCount, 4);
+      expect(tree.nodeCount, 13);
+      expect(tree.answer, 7);
+      // Each distinct cell is computed exactly once.
+      final computedCells =
+          tree.nodes.where((n) => !n.cacheHit).map((n) => cellKey(n.i, n.j));
+      expect(computedCells.toSet().length, 9);
+      // A cache hit never explores a subtree.
+      for (final n in tree.nodes.where((n) => n.cacheHit)) {
+        expect(n.children, isEmpty);
+      }
+    });
+
+    test('memo table fills with the cheapest cost to every cell', () {
+      expect(buildMemoTable(grid), [
+        [1, 4, 5],
+        [2, 7, 6],
+        [6, 8, 7],
+      ]);
+    });
+
+    test('naive and memoized agree on the answer', () {
+      const grids = [
+        [
+          [1, 3, 1],
+          [1, 5, 1],
+          [4, 2, 1],
+        ],
+        [
+          [1, 9, 9],
+          [1, 9, 9],
+          [1, 1, 1],
+        ],
+        [
+          [5]
+        ],
+        [
+          [1, 2, 3, 4]
+        ],
+      ];
+      for (final g in grids) {
+        expect(buildNaiveTree(g).answer, buildMemoTree(g).answer);
+      }
+    });
+
+    test('only repeated cells are tinted, stably ordered', () {
+      final tints = repeatedCellTints(buildNaiveTree(grid));
+      expect(tints.keys.toSet(), {'0,0', '0,1', '1,0', '1,1'});
+      // Sorted by (i, j) so the trees and the memo table agree on the colors.
+      expect(tints['0,0'], 0);
+      expect(tints['0,1'], 1);
+      expect(tints['1,0'], 2);
+      expect(tints['1,1'], 3);
+    });
+  });
+
+  group('minPathDp recorder', () {
+    const grid = [
+      [1, 3, 1],
+      [1, 5, 1],
+      [4, 2, 1],
+    ];
+
+    test('classic grid fills the same table as the memoized recursion', () {
+      final steps = generateMinPathDpSteps(grid);
+      expect(steps.last.status, MinPathStatus.done);
+      expect(steps.last.answer, 7);
+      expect(steps.last.dp, buildMemoTable(grid));
+    });
+
+    test('the cheapest path is walked back from the corner', () {
+      final steps = generateMinPathDpSteps(grid);
+      // 1 → 1 → 5? no: down the left column, then across the bottom is dearer.
+      // Cheapest is 1,3,1,1,1 = 7 via the top row then down the right column.
+      expect(steps.last.path, {'0,0', '0,1', '0,2', '1,2', '2,2'});
+    });
+
+    test('a greedy first step loses to the detour', () {
+      final steps = generateMinPathDpSteps(const [
+        [1, 9, 9],
+        [1, 9, 9],
+        [1, 1, 1],
+      ]);
+      expect(steps.last.answer, 5);
+      expect(steps.last.path, {'0,0', '1,0', '2,0', '2,1', '2,2'});
+    });
+
+    test('single cell needs no loops', () {
+      final steps = generateMinPathDpSteps(const [
+        [5]
+      ]);
+      expect(steps.last.answer, 5);
+      expect(steps.last.path, {'0,0'});
+    });
+
+    test('single row only ever comes from the left', () {
+      final steps = generateMinPathDpSteps(const [
+        [1, 2, 3, 4]
+      ]);
+      expect(steps.last.answer, 10);
+      // The interior loop never runs, so nothing is ever sourced from above.
+      for (final s in steps) {
+        if (s.fromRow != null) expect(s.fromRow, 0);
+      }
+    });
+
+    test('empty grid terminates cleanly', () {
+      final steps = generateMinPathDpSteps(const []);
+      expect(steps, hasLength(1));
+      expect(steps.last.status, MinPathStatus.done);
+    });
+
+    test('every step is a valid pseudocode line and dp only grows', () {
+      final steps = generateMinPathDpSteps(grid);
+      var filled = 0;
+      for (final s in steps) {
+        expect(s.line, inInclusiveRange(1, minPathDpPseudocode.length));
+        // Cells are written once and never unwritten.
+        final now = s.dp.expand((r) => r).where((v) => v != null).length;
+        expect(now, greaterThanOrEqualTo(filled));
+        filled = now;
+      }
+      expect(filled, 9);
     });
   });
 }
